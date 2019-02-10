@@ -10,7 +10,7 @@
     "url": "https://github.com/cornell-dti/campus-density-backend"
   },
   "engines": {
-    "node": ">=8"
+    "node": ">=10"
   },
   "scripts": {
     "build": "tsc -p ./",
