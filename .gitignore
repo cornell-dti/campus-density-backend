@@ -4,3 +4,6 @@ historical-storage/
 .openapi.yaml
 app.yaml
 cron.yaml
+build/**
+old/**
+gcloud-config.json

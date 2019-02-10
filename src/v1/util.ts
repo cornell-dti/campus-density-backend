@@ -15,13 +15,13 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-exports.strip = function (str) {
+export const strip = function (str) {
     return str.replace(/\W/g, '');
 }
 
 let httpsLib = null;
 
-function getHTTPSLib() {
+export function getHTTPSLib() {
     if (httpsLib == null) {
         httpsLib = require('https');
     }
@@ -29,7 +29,7 @@ function getHTTPSLib() {
     return httpsLib;
 }
 
-exports.getJSON = function (data, httpsLib = getHTTPSLib()) {
+export const getJSON = function (data, httpsLib = getHTTPSLib()) {
     return new Promise((resolve, reject) => {
         const request = httpsLib
             .get(data, result => {
