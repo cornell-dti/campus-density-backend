@@ -16,7 +16,7 @@ This project is free software licensed under the GNU AFFERO GENERAL PUBLIC LICEN
 
 ## Getting Started
 
-You will need **Node v11** to run the latest version of this app.
+You will need **Node v10** to run the latest version of this app.
 
 ### Setup
 
