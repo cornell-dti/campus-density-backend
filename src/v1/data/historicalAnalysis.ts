@@ -1,5 +1,5 @@
-type DAY = "SUN" | "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT";
-type HOUR =
+type DayString = "SUN" | "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT";
+type HourString =
   | "0"
   | "1"
   | "2"
@@ -27,7 +27,7 @@ type HOUR =
 
 export const analysis: {
   id: string;
-  hours: { [d in DAY]: { [h in HOUR]?: number } };
+  hours: { [d in DayString]: { [h in HourString]?: number } };
 }[] = [
   {
     id: "libe",

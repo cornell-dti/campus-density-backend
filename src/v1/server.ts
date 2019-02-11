@@ -1,15 +1,14 @@
-import * as express from "express";
-import * as passport from "passport";
+import * as express from 'express';
 
-import Density from "./density/routes";
-import Facilities from "./facilities/routes";
-import HistoricalData from "./history";
-import Auth, { authenticated } from "./auth";
+import Density from './density/routes';
+import Facilities from './facilities/routes';
+import HistoricalData from './history';
+import Auth, { authenticated } from './auth';
 
 const router = express.Router();
 
-router.use("/", Density);
-router.use("/", Facilities);
-router.use("/", HistoricalData);
+router.use('/', Density);
+router.use('/', Facilities);
+router.use('/', HistoricalData);
 
 export default router;

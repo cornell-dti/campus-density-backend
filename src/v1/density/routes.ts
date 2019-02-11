@@ -15,19 +15,16 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import * as express from "express";
+
+import asyncify from "../lib/asyncify";
+import { DensityDB } from "./db";
+
 import Datastore = require("@google-cloud/datastore");
 const datastore = new Datastore();
-
-import * as express from "express";
 const router = express.Router();
 
-import { ID_MAP, DISPLAY_MAP, UNITNAME_MAP } from "../mapping";
-
-import * as Util from "../util";
-import asyncify from "../lib/asyncify";
-import { density_db } from "./db";
-
-const db = new density_db(datastore);
+const db = new DensityDB(datastore);
 
 router.get(
   "/howDense",

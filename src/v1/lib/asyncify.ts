@@ -1,5 +1,3 @@
-import * as express from "express";
-
 const asyncify = handler =>
   function asyncUtilWrap(...args) {
     const val = handler(...args);

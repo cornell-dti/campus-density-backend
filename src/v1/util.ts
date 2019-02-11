@@ -15,37 +15,6 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export const strip = function (str) {
-    return str.replace(/\W/g, '');
-}
-
-let httpsLib = null;
-
-export function getHTTPSLib() {
-    if (httpsLib == null) {
-        httpsLib = require('https');
-    }
-
-    return httpsLib;
-}
-
-export const getJSON = function (data, httpsLib = getHTTPSLib()) {
-    return new Promise((resolve, reject) => {
-        const request = httpsLib
-            .get(data, result => {
-                let body = '';
-
-                result.on('data', chunk => {
-                    body += chunk;
-                });
-
-                result.on('end', () => {
-                    const jsdata = JSON.parse(body);
-                    resolve(jsdata);
-                });
-            });
-        request.on('error', e => {
-            reject(e);
-        });
-    });
-}
+export const strip = function strip(str): string {
+  return str.replace(/\W/g, "");
+};

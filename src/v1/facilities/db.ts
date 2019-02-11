@@ -1,7 +1,7 @@
 import { ID_MAP, DISPLAY_MAP } from "../mapping";
 import { FacilityHourSet, FacilityInfo } from "./models/info";
 import { CampusLocation } from "../models/campus";
-import { DBQuery, db, DatabaseQuery, DatabaseQueryNoParams } from "../db";
+import { DBQuery, DB, DatabaseQuery, DatabaseQueryNoParams } from "../db";
 import { FacilityMetadata } from "./models/list";
 
 function getInfo(id: string, hours: FacilityInfoDocument[]): FacilityInfo {
@@ -49,7 +49,7 @@ class FacilityInfoDocument {
   campusLocation: CampusLocation;
 }
 
-export class facility_db extends db {
+export class facility_db extends DB {
   constructor(datastore) {
     super(datastore);
   }
@@ -71,7 +71,7 @@ export class facility_db extends db {
           const info = getInfo(id, hours);
 
           if (info) {
-            return [db.query(info, id)];
+            return [DB.query(info, id)];
           }
         }
 
@@ -80,7 +80,7 @@ export class facility_db extends db {
         return Object.keys(ID_MAP)
           .map(id => getInfo(id, hours))
           .filter(obj => obj != null)
-          .map(info => db.query(info));
+          .map(info => DB.query(info));
       }
     } catch (err) {
       console.log(err.message);
@@ -90,7 +90,7 @@ export class facility_db extends db {
 
   async facilityList(): Promise<DatabaseQueryNoParams<FacilityMetadata>[]> {
     return Object.keys(DISPLAY_MAP).map(key =>
-      db.query(
+      DB.query(
         FacilityMetadata.assign({
           displayName: DISPLAY_MAP[key],
           id: key

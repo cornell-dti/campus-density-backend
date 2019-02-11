@@ -1,13 +1,15 @@
 import { ID_MAP, DISPLAY_MAP, UNITNAME_MAP } from "../mapping";
 import { CampusLocation } from "../models/campus";
-import { DBQuery, db, DatabaseQuery, DatabaseQueryNoParams } from "../db";
+import { DBQuery, DB, DatabaseQuery, DatabaseQueryNoParams } from "../db";
 import * as Util from "../util";
 import { DensityDocument } from "./models/density";
 
-export class density_db extends db {
-  constructor(datastore) {
+export class DensityDB extends DB {
+  /* eslint-disable no-useless-constructor */
+  public constructor(datastore) {
     super(datastore);
   }
+  /* eslint-enable */
 
   async howDense(
     facilityId?: string
@@ -21,19 +23,18 @@ export class density_db extends db {
       const entity = entities.find(e => e.id === Util.strip(ID_MAP[id]));
       if (entity && id in ID_MAP) {
         return [
-          db.query(
+          DB.query(
             DensityDocument.fromJSON({
               id,
               density: entity.density
             })
           )
         ];
-      } else {
-        throw new Error("Invalid ID");
       }
+      throw new Error("Invalid ID");
     } else {
       return entities.map(e => {
-        return db.query(
+        return DB.query(
           DensityDocument.fromJSON({
             id: UNITNAME_MAP[e.id],
             density: e.density

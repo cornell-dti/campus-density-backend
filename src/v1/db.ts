@@ -1,21 +1,32 @@
-export type DatabaseQuery<Q, K> = { timestamp: number; result: K; params: Q };
-export type DatabaseQueryNoParams<K> = { timestamp: number; result: K };
+export interface DatabaseQuery<Q, K> {
+  timestamp: number;
+  result: K;
+  params: Q;
+}
+export interface DatabaseQueryNoParams<K> {
+  timestamp: number;
+  result: K;
+}
+
 export type DBQuery<Q, K> = DatabaseQuery<Q, K> | DatabaseQueryNoParams<K>;
 
-export class db {
-  datastore;
+export class DB {
+  protected datastore;
 
-  constructor(datastore) {
+  protected constructor(datastore) {
     this.datastore = datastore;
   }
 
-  static query_has_params<Q, K>(
+  protected static queryHasParams<Q, K>(
     query: DBQuery<Q, K>
   ): query is DatabaseQuery<Q, K> {
     return "params" in query;
   }
 
-  static query<Q, K>(result: K, params?: Q | undefined): DBQuery<Q, K> {
+  protected static query<Q, K>(
+    result: K,
+    params?: Q | undefined
+  ): DBQuery<Q, K> {
     return {
       timestamp: Date.now(),
       result,
