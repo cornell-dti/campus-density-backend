@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 import v1 from "./v1/server";
 import v2 from "./v2/server";
 
