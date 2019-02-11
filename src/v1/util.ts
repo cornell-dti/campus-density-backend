@@ -16,5 +16,5 @@
  */
 
 export const strip = function strip(str): string {
-  return str.replace(/\W/g, "");
+  return str.replace(/\W/g, '');
 };

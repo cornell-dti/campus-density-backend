@@ -15,25 +15,23 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import * as express from "express";
+import * as express from 'express';
 
-import asyncify from "../lib/asyncify";
-import { DensityDB } from "./db";
+import asyncify from '../lib/asyncify';
+import { DensityDB } from './db';
 
-import Datastore = require("@google-cloud/datastore");
+import Datastore = require('@google-cloud/datastore');
 const datastore = new Datastore();
 const router = express.Router();
 
 const db = new DensityDB(datastore);
 
 router.get(
-  "/howDense",
+  '/howDense',
   asyncify(async (req, res) => {
     try {
       if (req.params.id) {
-        res
-          .status(200)
-          .send((await db.howDense(req.params.id)).map(v => v.result));
+        res.status(200).send((await db.howDense(req.params.id)).map(v => v.result));
       } else {
         res.status(200).send((await db.howDense()).map(v => v.result));
       }

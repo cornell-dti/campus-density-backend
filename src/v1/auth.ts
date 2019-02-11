@@ -15,47 +15,44 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const Datastore = require("@google-cloud/datastore");
-const datastore = Datastore();
-const uuidv4 = require("uuid/v4");
-const moment = require("moment");
+import * as express from 'express';
 
-import * as express from "express";
+/* eslint-disable @typescript-eslint/no-var-requires */
+
+const Datastore = require('@google-cloud/datastore');
+
+const datastore = Datastore();
+
+/* eslint-enable */
+
 const router = express.Router();
 
 // TODO Validate iOS vendor ids
 const UUID_VALIDATE_IOS = /[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}/;
 
-const Util = require("./util");
-
-export function authenticated(route) {
+export function authenticated(route): (req, res) => void {
   return (...params) => {
     const [req, res] = params;
 
-    if (
-      !req.headers.authorization ||
-      !req.headers.authorization.startsWith("Bearer ")
-    ) {
-      res.status(403).send("Unauthorized");
+    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+      res.status(403).send('Unauthorized');
       return;
     }
 
-    const idToken = req.headers.authorization.split("Bearer ")[1];
+    const idToken = req.headers.authorization.split('Bearer ')[1];
     const apiKey = process.env.AUTH_KEY;
 
     if (idToken === apiKey) {
-      const token = req.headers["x-api-key"];
-      const query = datastore
-        .createQuery("auth", "auth_info")
-        .filter("token", "=", token);
+      const token = req.headers['x-api-key'];
+      const query = datastore.createQuery('auth', 'auth_info').filter('token', '=', token);
 
       datastore.runQuery(query, (err, tokens) => {
         if (err) {
-          res.status(500).send("Failed to access token tables");
+          res.status(500).send('Failed to access token tables');
           return;
         }
 
-        if (/*Array.from(*/ tokens /*)*/.length == 1) {
+        if (/* Array.from( */ tokens /* ) */.length === 1) {
           if (tokens[0].ios) {
             route(...params, {
               ios: true
@@ -64,15 +61,15 @@ export function authenticated(route) {
           }
           route(...params, {});
         } else {
-          res.status(403).send("Unauthorized");
+          res.status(403).send('Unauthorized');
         }
       });
 
       // TODO Add receipt/instanceId authentication
-      //const receipt = req.body.receipt;
-      //const instanceId = req.body.instanceId;
+      // const receipt = req.body.receipt;
+      // const instanceId = req.body.instanceId;
     } else {
-      res.status(403).send("Unauthorized");
+      res.status(403).send('Unauthorized');
     }
   };
 }

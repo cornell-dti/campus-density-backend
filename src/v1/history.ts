@@ -1,12 +1,9 @@
-import * as express from "express";
-import { analysis } from "./data/historicalAnalysis";
+import * as express from 'express';
+import { analysis } from './data/historicalAnalysis';
 
 let data = null;
 
-export default function handler(
-  req: express.Request,
-  res: express.Response
-): void {
+export default function handler(req: express.Request, res: express.Response): void {
   if (data == null) {
     data = analysis; // TODO Fill in missing hours with -1
   }

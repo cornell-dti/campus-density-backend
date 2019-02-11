@@ -1,8 +1,7 @@
-import { ID_MAP, DISPLAY_MAP, UNITNAME_MAP } from "../mapping";
-import { CampusLocation } from "../models/campus";
-import { DBQuery, DB, DatabaseQuery, DatabaseQueryNoParams } from "../db";
-import * as Util from "../util";
-import { DensityDocument } from "./models/density";
+import { ID_MAP, UNITNAME_MAP } from '../mapping';
+import { DBQuery, DB } from '../db';
+import * as Util from '../util';
+import { DensityDocument } from './models/density';
 
 export class DensityDB extends DB {
   /* eslint-disable no-useless-constructor */
@@ -11,12 +10,10 @@ export class DensityDB extends DB {
   }
   /* eslint-enable */
 
-  async howDense(
-    facilityId?: string
-  ): Promise<DBQuery<string, DensityDocument>[]> {
+  async howDense(facilityId?: string): Promise<DBQuery<string, DensityDocument>[]> {
     const { datastore } = this;
-    const query = datastore.createQuery("density", "density_info");
-    const [entities, info] = await datastore.runQuery(query);
+    const query = datastore.createQuery('density', 'density_info');
+    const [entities] = await datastore.runQuery(query);
 
     if (facilityId) {
       const id = facilityId;
@@ -31,7 +28,7 @@ export class DensityDB extends DB {
           )
         ];
       }
-      throw new Error("Invalid ID");
+      throw new Error('Invalid ID');
     } else {
       return entities.map(e => {
         return DB.query(

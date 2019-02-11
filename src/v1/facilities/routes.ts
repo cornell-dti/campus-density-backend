@@ -1,15 +1,16 @@
-const Datastore = require("@google-cloud/datastore");
+import * as express from 'express';
+import { FacilityDB } from './db';
+import asyncify from '../lib/asyncify';
+
+const Datastore = require('@google-cloud/datastore'); // eslint-disable-line @typescript-eslint/no-var-requires
+
 const datastore = Datastore();
 
-import * as express from "express";
-import { facility_db } from "./db";
-import asyncify from "../lib/asyncify";
-
 const router = express.Router();
-const db = new facility_db(datastore);
+const db = new FacilityDB(datastore);
 
 router.get(
-  "/facilityList",
+  '/facilityList',
   asyncify(async (req, res) => {
     try {
       const facilityList = await db.facilityList();
@@ -22,16 +23,12 @@ router.get(
 );
 
 router.get(
-  "/facilityInfo",
+  '/facilityInfo',
   asyncify(async (req, res) => {
     try {
       res
         .status(200)
-        .send(
-          (await (req.params.id
-            ? db.facilityInfo(req.params.id)
-            : db.facilityInfo())).map(v => v.result)
-        );
+        .send((await (req.params.id ? db.facilityInfo(req.params.id) : db.facilityInfo())).map(v => v.result));
     } catch (err) {
       res.status(400).send(err.message);
     }

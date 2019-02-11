@@ -1,8 +1,8 @@
-import { ID_MAP, DISPLAY_MAP } from "../mapping";
-import { FacilityHourSet, FacilityInfo } from "./models/info";
-import { CampusLocation } from "../models/campus";
-import { DBQuery, DB, DatabaseQuery, DatabaseQueryNoParams } from "../db";
-import { FacilityMetadata } from "./models/list";
+import { ID_MAP, DISPLAY_MAP } from '../mapping';
+import { FacilityHourSet, FacilityInfo } from './models/info';
+import { CampusLocation } from '../models/campus';
+import { DBQuery, DB, DatabaseQueryNoParams } from '../db';
+import { FacilityMetadata } from './models/list';
 
 function getInfo(id: string, hours: FacilityInfoDocument[]): FacilityInfo {
   const date = Math.floor(Date.now() / 1000);
@@ -10,9 +10,7 @@ function getInfo(id: string, hours: FacilityInfoDocument[]): FacilityInfo {
   const facilityHours: FacilityInfoDocument = hours.find(x => x.id === id);
 
   if (facilityHours && facilityHours.operatingHours) {
-    const nextClosing = facilityHours.operatingHours.find(
-      e => e.startTimestamp < date && e.endTimestamp > date
-    );
+    const nextClosing = facilityHours.operatingHours.find(e => e.startTimestamp < date && e.endTimestamp > date);
 
     const nextClosingTimestamp = nextClosing ? nextClosing.endTimestamp : -1;
 
@@ -22,9 +20,8 @@ function getInfo(id: string, hours: FacilityInfoDocument[]): FacilityInfo {
       // TODO This is broken. Needs to find last opening, not first opening.
       // TODO This may be fixed now... test this.
       nextOpen = facilityHours.operatingHours.reduce(
-        (previous, current) =>
-          current.startTimestamp > previous.startTimestamp ? current : previous,
-        { startTimestamp: 0, endTimestamp: 0 } as FacilityHourSet
+        (previous, current) => (current.startTimestamp > previous.startTimestamp ? current : previous),
+        FacilityHourSet.assign({ startTimestamp: 0, endTimestamp: 0 })
       );
     }
 
@@ -37,9 +34,8 @@ function getInfo(id: string, hours: FacilityInfoDocument[]): FacilityInfo {
       closingAt: nextClosingTimestamp,
       dailyHours: facilityHours.operatingHours
     });
-  } else {
-    return null;
   }
+  return null;
 }
 
 class FacilityInfoDocument {
@@ -49,17 +45,15 @@ class FacilityInfoDocument {
   campusLocation: CampusLocation;
 }
 
-export class facility_db extends DB {
-  constructor(datastore) {
+export class FacilityDB extends DB {
+  public constructor(datastore) {
     super(datastore);
   }
 
-  async facilityInfo(
-    facilityId?: string
-  ): Promise<DBQuery<string, FacilityInfo>[]> {
+  async facilityInfo(facilityId?: string): Promise<DBQuery<string, FacilityInfo>[]> {
     const { datastore } = this;
 
-    const query = datastore.createQuery("hours");
+    const query = datastore.createQuery('hours');
 
     try {
       const [hours] = await datastore.runQuery(query);
@@ -88,7 +82,9 @@ export class facility_db extends DB {
     }
   }
 
-  async facilityList(): Promise<DatabaseQueryNoParams<FacilityMetadata>[]> {
+  async facilityList(): /* eslint-disable-line class-methods-use-this */ Promise<
+    DatabaseQueryNoParams<FacilityMetadata>[]
+  > {
     return Object.keys(DISPLAY_MAP).map(key =>
       DB.query(
         FacilityMetadata.assign({

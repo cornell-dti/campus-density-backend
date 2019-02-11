@@ -17,16 +17,11 @@ export class DB {
     this.datastore = datastore;
   }
 
-  protected static queryHasParams<Q, K>(
-    query: DBQuery<Q, K>
-  ): query is DatabaseQuery<Q, K> {
-    return "params" in query;
+  protected static queryHasParams<Q, K>(query: DBQuery<Q, K>): query is DatabaseQuery<Q, K> {
+    return 'params' in query;
   }
 
-  protected static query<Q, K>(
-    result: K,
-    params?: Q | undefined
-  ): DBQuery<Q, K> {
+  protected static query<Q, K>(result: K, params?: Q | undefined): DBQuery<Q, K> {
     return {
       timestamp: Date.now(),
       result,
