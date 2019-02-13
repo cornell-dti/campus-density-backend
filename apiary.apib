@@ -269,6 +269,67 @@ Campus Density API Doc
 
             Unauthorized
 
+## Facility Hours [/facilityHours] 
+
+### Get facility hours [GET]
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer [API_KEY]
+            x-api-key: (API Token)
+    
++ Response 200
+
+    Successful response.
+ 
+    + Headers
+            
+            content-type: application/json
+    
+    + Attributes
+        + - (array)
+            + - (object)
+                + id: "facilityId" (string)
+                + startDate: 02/12/19 (JavaScript Date object)
+                + endDate: 02/14/19 (JavaScript Date object) 
+
+    + Body
+            
+            [
+                {
+                    "id": "facilityId"
+                    "startDate": 02/12/19
+                    "endDate": 02/12/19
+                }
+            ]
+    
+
++ Response 500
+
+    Something went wrong inside the server.
+
+    + Headers
+            
+            content-type: text/plain
+
+    + Body
+
+            Internal Error.
+
++ Response 403
+
+    Unauthorized access.
+    
+    + Headers
+            
+            content-type: text/plain
+    
+    
+    + Body
+
+            Unauthorized
+
 # Data Structures
 
 ## AuthResponse (object)
