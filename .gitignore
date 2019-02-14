@@ -4,3 +4,5 @@ conf/**
 
 *.yaml
 gcloud-config.json
+
+.vscode/**
