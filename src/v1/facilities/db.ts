@@ -3,6 +3,7 @@ import { FacilityHourSet, FacilityInfo } from './models/info';
 import { CampusLocation } from '../models/campus';
 import { DBQuery, DB, DatabaseQueryNoParams } from '../db';
 import { FacilityMetadata } from './models/list';
+import { FacilityHours } from './models/hours';
 
 function getInfo(id: string, hours: FacilityInfoDocument[]): FacilityInfo {
   const date = Math.floor(Date.now() / 1000);
@@ -93,5 +94,12 @@ export class FacilityDB extends DB {
         })
       )
     );
+  }
+
+  async facilityHours(facilityId?: string): Promise<DBQuery<string, FacilityHours>[]>  {
+    const {datastore} = this; 
+    const query = datastore.createQuery('hours');
+    
+    return null; 
   }
 }

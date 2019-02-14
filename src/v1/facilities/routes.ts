@@ -35,4 +35,17 @@ router.get(
   })
 );
 
+router.get(
+  '/facilityHours',
+  asyncify(async (req, res) => {
+    try {
+      const facilityHours = await db.facilityHours();
+      res.status(200).send(facilityHours.map(v => v.result.toJSON())); 
+    } catch (err) {
+      // TODO Send actual error codes based on errors. (this applies to all routes)
+      res.status(400).send(err);
+    }
+  })
+);
+
 export default router;
