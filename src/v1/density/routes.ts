@@ -30,8 +30,8 @@ router.get(
   '/howDense',
   asyncify(async (req, res) => {
     try {
-      if (req.params.id) {
-        res.status(200).send((await db.howDense(req.params.id)).map(v => v.result));
+      if (req.query.id) {
+        res.status(200).send((await db.howDense(req.query.id)).map(v => v.result));
       } else {
         res.status(200).send((await db.howDense()).map(v => v.result));
       }

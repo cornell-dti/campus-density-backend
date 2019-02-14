@@ -24,11 +24,11 @@ router.get(
 
 router.get(
   '/facilityInfo',
-  asyncify(async (req, res) => {
+  asyncify(async (req: express.Request, res: express.Response) => {
     try {
       res
         .status(200)
-        .send((await (req.params.id ? db.facilityInfo(req.params.id) : db.facilityInfo())).map(v => v.result));
+        .send((await (req.query.id ? db.facilityInfo(req.query.id) : db.facilityInfo())).map(v => v.result));
     } catch (err) {
       res.status(400).send(err.message);
     }
