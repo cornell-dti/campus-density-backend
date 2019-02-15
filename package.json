@@ -12,6 +12,7 @@
   "engines": {
     "node": ">=10"
   },
+  "heroku-run-build-script": true,
   "scripts": {
     "build": "tsc -p ./",
     "start": "node build/server.js",
