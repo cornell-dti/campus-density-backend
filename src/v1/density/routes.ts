@@ -17,28 +17,35 @@
 
 import * as express from 'express';
 
+import { RedisClient } from 'redis';
 import asyncify from '../lib/asyncify';
 import { DensityDB } from './db';
+import { cache } from '../lib/cache';
 
 import Datastore = require('@google-cloud/datastore');
+
 const datastore = new Datastore();
-const router = express.Router();
 
 const db = new DensityDB(datastore);
 
-router.get(
-  '/howDense',
-  asyncify(async (req, res) => {
-    try {
-      if (req.query.id) {
-        res.status(200).send((await db.howDense(req.query.id)).map(v => v.result));
-      } else {
-        res.status(200).send((await db.howDense()).map(v => v.result));
-      }
-    } catch (err) {
-      res.status(400).send(err);
-    }
-  })
-);
+export default function routes(redis?: RedisClient) {
+  const router = express.Router();
 
-export default router;
+  router.get(
+    '/howDense',
+    cache(req => `/howDense?${req.query.id || ''}`.toLowerCase(), redis),
+    asyncify(async (req, res) => {
+      try {
+        if (req.query.id) {
+          res.status(200).send((await db.howDense(req.query.id)).map(v => v.result));
+        } else {
+          res.status(200).send((await db.howDense()).map(v => v.result));
+        }
+      } catch (err) {
+        res.status(400).send(err);
+      }
+    })
+  );
+
+  return router;
+}

@@ -1,14 +1,17 @@
 import * as express from 'express';
 
-import Density from './density/routes';
-import Facilities from './facilities/routes';
-import HistoricalData from './history';
+import { RedisClient } from 'redis';
+import densityRoutes from './density/routes';
+import facilityRoutes from './facilities/routes';
+import historicalRoute from './history';
 import Auth, { authenticated } from './auth';
 
-const router = express.Router();
+export default function routes(redis?: RedisClient) {
+  const router = express.Router();
 
-router.use('/', Density);
-router.use('/', Facilities);
-router.use('/historicalData', HistoricalData);
+  router.use('/', densityRoutes(redis));
+  router.use('/', facilityRoutes);
+  router.use('/historicalData', historicalRoute);
 
-export default router;
+  return router;
+}
