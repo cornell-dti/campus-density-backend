@@ -8,6 +8,8 @@ require('dotenv').config();
 
 const app = express();
 
+const credentials = JSON.parse(process.env.GCLOUD_CONFIG);
+
 function runServer(): Promise<string[]> {
   console.log('Starting Flux backend...');
 
@@ -18,7 +20,7 @@ function runServer(): Promise<string[]> {
       try {
         const client = redis.createClient(process.env.REDIS_URL);
 
-        app.use('/v1', v1(client));
+        app.use('/v1', v1(client, credentials));
         app.use('/v2', v2);
 
         client.on('connect', () => {
@@ -35,7 +37,7 @@ function runServer(): Promise<string[]> {
       }
     }
 
-    app.use('/v1', v1());
+    app.use('/v1', v1(undefined, credentials));
     app.use('/v2', v2);
 
     app.listen(process.env.PORT || 3333);

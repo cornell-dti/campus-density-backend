@@ -24,11 +24,10 @@ import { cache } from '../lib/cache';
 
 import Datastore = require('@google-cloud/datastore');
 
-const datastore = new Datastore();
+export default function routes(redis?: RedisClient, credentials?) {
+  const datastore = new Datastore({ credentials });
+  const db = new DensityDB(datastore);
 
-const db = new DensityDB(datastore);
-
-export default function routes(redis?: RedisClient) {
   const router = express.Router();
 
   router.get(
