@@ -4,8 +4,6 @@ import * as redis from 'redis';
 import v1 from './v1/server';
 import v2 from './v2/server';
 
-require('dotenv').config();
-
 const app = express();
 
 const credentials = JSON.parse(process.env.GCLOUD_CONFIG);
