@@ -6,3 +6,5 @@ conf/**
 gcloud-config.json
 
 .vscode/**
+
+.env

@@ -1,51 +1,58 @@
 import * as express from 'express';
-import * as redis from 'redis';
-
+import * as Redis from 'ioredis';
 import v1 from './v1/server';
 import v2 from './v2/server';
 
-const app = express();
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 const credentials = JSON.parse(process.env.GCLOUD_CONFIG);
 
-function runServer(): Promise<string[]> {
+function use(app: express.Application, redis, credentials) {
+  app.use('/v1', v1(redis, credentials));
+  app.use('/v2', v2);
+}
+
+function runServer(): Promise<any[]> {
   console.log('Starting Flux backend...');
+
+  const app = express();
 
   return new Promise(resolve => {
     const messages = [];
 
-    if (process.env.ENVIRONMENT === 'production') {
-      try {
-        const client = redis.createClient(process.env.REDIS_URL);
+    try {
+      console.log(process.env.REDIS_URL);
+      const client = new Redis(process.env.REDIS_URL);
 
-        app.use('/v1', v1(client, credentials));
-        app.use('/v2', v2);
+      use(app, client, credentials);
 
-        client.on('connect', () => {
-          app.listen(process.env.PORT || 3333);
+      client.on('connect', () => {
+        messages.push('Redis Connected.', 'Flux backend started.');
 
-          messages.push('Redis Connected.', 'Flux backend started.');
+        resolve([app, messages]);
+      });
 
-          resolve(messages);
-        });
+      client.on('error', err => {
+        console.log(`[REDIS ERROR] ${err.message}`);
+      });
+    } catch (err) {
+      messages.push(`Error: ${err}`);
 
-        return;
-      } catch (err) {
-        messages.push(`Error: ${err}`);
-      }
+      use(app, undefined, credentials);
+
+      messages.push('Redis not connected...', 'Flux backend started.');
+
+      resolve([app, messages]);
     }
-
-    app.use('/v1', v1(undefined, credentials));
-    app.use('/v2', v2);
-
-    app.listen(process.env.PORT || 3333);
-
-    messages.push('Redis not connected...', 'Flux backend started.');
-
-    resolve(messages);
   });
 }
 
 runServer()
-  .then(messages => messages.forEach(message => console.log(message)))
+  .then(([app, messages]) => {
+    messages.forEach(message => console.log(message));
+
+    app.listen(process.env.PORT || 3333);
+  })
   .catch(err => console.log(err));

@@ -1,18 +1,22 @@
 import * as express from 'express';
-import { RedisClient } from 'redis';
+import { Redis } from 'ioredis';
 
 // A super basic cache of database requests
-export function cache(key: (req: express.Request) => string, redis?: RedisClient) {
+export function cache(key: (r: express.Request) => string, redis?: Redis) {
   if (redis) {
     return (req, res, next) => {
-      redis.get(key(req), (error, data) => {
+      redis.on('error', err => {
+        next();
+      });
+
+      redis.get(key(req), function d(error, data) {
         if (error) {
           // TODO
           throw error;
         }
 
-        if (data !== null) {
-          res.status(400).send(data);
+        if (data) {
+          res.status(200).send(data);
         } else {
           next();
         }
@@ -20,5 +24,7 @@ export function cache(key: (req: express.Request) => string, redis?: RedisClient
     };
   }
 
-  return (req, res, next) => next();
+  return (req, res, next) => {
+    next();
+  };
 }

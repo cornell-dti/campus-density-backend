@@ -1,12 +1,12 @@
 import * as express from 'express';
 // eslint-disable-line @typescript-eslint/no-var-requires
-import { RedisClient } from 'redis';
+import { Redis } from 'ioredis';
 import { FacilityDB } from './db';
 import asyncify from '../lib/asyncify';
 
 import Datastore = require('@google-cloud/datastore');
 
-export default function routes(redis?: RedisClient, credentials?) {
+export default function routes(redis?: Redis, credentials?) {
   const datastore = new Datastore({ credentials });
   const db = new FacilityDB(datastore);
 
