@@ -9,6 +9,6 @@ const router = express.Router();
 
 router.use('/', Density);
 router.use('/', Facilities);
-router.use('/', HistoricalData);
+router.use('/historicalData', HistoricalData);
 
 export default router;
