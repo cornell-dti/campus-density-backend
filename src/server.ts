@@ -16,7 +16,7 @@ function runServer(): Promise<string[]> {
   return new Promise(resolve => {
     const messages = [];
 
-    if (process.env.environment === 'production') {
+    if (process.env.ENVIRONMENT === 'production') {
       try {
         const client = redis.createClient(process.env.REDIS_URL);
 
