@@ -3,7 +3,9 @@ import { FacilityHourSet, FacilityInfo } from './models/info';
 import { CampusLocation } from '../models/campus';
 import { DBQuery, DB, DatabaseQueryNoParams } from '../db';
 import { FacilityMetadata } from './models/list';
-import { FacilityHours } from './models/hours';
+import { FacilityHours, DailyHours } from './models/hours';
+
+const moment = require('moment-timezone');
 
 function getInfo(id: string, hours: FacilityInfoDocument[]): FacilityInfo {
   const date = Math.floor(Date.now() / 1000);
@@ -37,6 +39,44 @@ function getInfo(id: string, hours: FacilityInfoDocument[]): FacilityInfo {
     });
   }
   return null;
+}
+
+function getHoursInfo(id: string, hours: FacilityHoursDocument[], startDate: string, endDate: string): FacilityHours {
+  // need to go through hours and find those between specified start and end date 
+  // in the DailyHours object we create, we will have a FacilityHourSet[]. We will create a new DailyHours object 
+  // for every date in the range, and in the FacilityHourSet[] for each of these DailyHours objects, we put 
+  // all time ranges for that given date. 
+  // Add all the DailyHours objects to an array, and return a FacilityHours object where hours is assigned to this array.  
+  const dateBegin = moment(startDate, 'MM-DD-YY').tz('America/New_York').unix()
+  const dateEnd = moment(endDate, 'MM-DD-YY').tz('America/New_York').unix()
+  const facilityId = id; 
+  let validDailyHours = []
+  for (let doc of hours) {
+    if (doc.id == id) {
+      for (let facilityHours of doc.hours) {
+        if (dateBegin <= facilityHours.date && dateEnd >= facilityHours.date) {
+          validDailyHours.push(
+            DailyHours.assign({
+              date: facilityHours.date, 
+              dayOfWeek: facilityHours.dayOfWeek, 
+              status: facilityHours.status, 
+              statusText: facilityHours.statusText, 
+              dailyHours: facilityHours.dailyHours
+            })
+          ); 
+        }
+      }
+    }
+  }
+  return FacilityHours.assign({
+    id: facilityId, 
+    hours: validDailyHours
+  });
+}
+
+class FacilityHoursDocument {
+  id: string; 
+  hours: DailyHours[]; 
 }
 
 class FacilityInfoDocument {
@@ -96,10 +136,39 @@ export class FacilityDB extends DB {
     );
   }
 
-  async facilityHours(facilityId?: string): Promise<DBQuery<string, FacilityHours>[]>  {
+  async facilityHours(facilityId?: string, startDate?: string, endDate?: string): Promise<DBQuery<string, FacilityHours>[]>  {
     const {datastore} = this; 
-    const query = datastore.createQuery('hours');
-    
-    return null; 
+    const query = datastore.createQuery('development-testing-hours');
+    try {
+      const [hoursrange] = await datastore.runQuery(query); 
+      if (facilityId) {
+        if (startDate && endDate) {
+          const id = facilityId; 
+          if (id in ID_MAP) {
+            const hoursInfo = getHoursInfo(id, hoursrange, startDate, endDate);
+  
+            if (hoursInfo) {
+              return [DB.query(hoursInfo, id)];
+            }
+          }
+        }
+        else {
+          throw new Error(`Missing start and/or end date`); 
+        }
+      }
+      else {
+        if (startDate && endDate) {
+          // do stuff
+        }
+        else {
+          throw new Error(`Missing start and/or end date`); 
+        }
+      }
+      return null; 
+    }
+    catch (err) {
+      console.log(err.message);
+      throw new Error(`Failed to access backend.`);
+    }
   }
 }

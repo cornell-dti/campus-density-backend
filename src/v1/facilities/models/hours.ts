@@ -1,8 +1,19 @@
-import { JSONParsable, JSONObject } from "../../lib/json";
+import { JSONParsable, JSONObject, typedefs, JSONArray } from "../../lib/json";
+import { FacilityHourSet } from "./info";
 
-@JSONParsable({id: "string", startDate: { type: val => val instanceof Date } , endDate: { type: val => val instanceof Date }})
+@JSONParsable({date: 'string', dayOfWeek: 'number', status: 'number', statusText: 'string' })
+export class DailyHours extends JSONObject {
+  date: string; 
+  dayOfWeek: number; 
+  status: number; 
+  statusText: string; 
+  @JSONArray(FacilityHourSet)
+  dailyHours: FacilityHourSet[]
+}
+
+@JSONParsable({id: "string"})
 export class FacilityHours extends JSONObject {
-  id: string; 
-  startDate: Date; 
-  endDate: Date; 
+  id: string;
+  @JSONArray(DailyHours)
+  hours: DailyHours[]; 
 }
