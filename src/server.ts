@@ -3,11 +3,13 @@ import * as Redis from 'ioredis';
 import v1 from './v1/server';
 import v2 from './v2/server';
 
+let credentials =  undefined;
+
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
+} else {
+  credentials = JSON.parse(process.env.GCLOUD_CONFIG);
 }
-
-const credentials = JSON.parse(process.env.GCLOUD_CONFIG);
 
 function use(app: express.Application, redis, credentials) {
   app.use('/v1', v1(redis, credentials));
