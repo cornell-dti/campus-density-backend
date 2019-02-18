@@ -3,7 +3,7 @@ import * as Redis from 'ioredis';
 import v1 from './v1/server';
 import v2 from './v2/server';
 
-let credentials =  undefined;
+let credentials;
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -25,8 +25,7 @@ function runServer(): Promise<any[]> {
     const messages = [];
 
     try {
-      console.log(process.env.REDIS_URL);
-      const client = new Redis(process.env.REDIS_URL);
+      const client = process.env.REDISTOGO_URL ? new Redis(process.env.REDISTOGO_URL) : new Redis();
 
       use(app, client, credentials);
 
