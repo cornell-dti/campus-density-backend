@@ -3,6 +3,7 @@ import * as express from 'express';
 import { Redis } from 'ioredis';
 import { FacilityDB } from './db';
 import asyncify from '../lib/asyncify';
+import { cache } from '../lib/cache';
 
 import Datastore = require('@google-cloud/datastore');
 
@@ -11,8 +12,10 @@ export default function routes(redis?: Redis, credentials?) {
   const db = new FacilityDB(datastore);
 
   const router = express.Router();
+
   router.get(
     '/facilityList',
+    cache(() => `/facilityList`, redis),
     asyncify(async (req, res) => {
       try {
         const facilityList = await db.facilityList();
@@ -24,8 +27,11 @@ export default function routes(redis?: Redis, credentials?) {
     })
   );
 
+  const facilityInfoKey = req => (req.query.id ? `/facilityInfo?${req.query.id}` : `/facilityInfo`);
+
   router.get(
     '/facilityInfo',
+    cache(facilityInfoKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
         res
@@ -36,6 +42,8 @@ export default function routes(redis?: Redis, credentials?) {
       }
     })
   );
+
+  const facilityHoursKey = req => (req.query.id ? `/facilityHours?${req.query.id}` : `/facilityHours`);
 
   router.get(
     '/facilityInfo',
@@ -52,6 +60,7 @@ export default function routes(redis?: Redis, credentials?) {
 
   router.get(
     '/facilityHours',
+    cache(facilityHoursKey, redis),
     asyncify(async (req, res) => {
       try {
         const facilityHours = await db.facilityHours(req.query.id, req.query.startDate, req.query.endDate);
