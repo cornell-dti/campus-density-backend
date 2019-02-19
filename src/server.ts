@@ -16,7 +16,7 @@ function use(app: express.Application, redis, credentials) {
   app.use('/v2', v2);
 }
 
-function runServer(): Promise<any[]> {
+function runServer(startRedis?: boolean): Promise<any[]> {
   console.log('Starting Flux backend...');
 
   const app = express();
@@ -25,19 +25,25 @@ function runServer(): Promise<any[]> {
     const messages = [];
 
     try {
-      const client = process.env.REDISTOGO_URL ? new Redis(process.env.REDISTOGO_URL) : new Redis();
+      if (startRedis) {
+        const client = process.env.REDISTOGO_URL ? new Redis(process.env.REDISTOGO_URL) : new Redis();
+        use(app, client, credentials);
 
-      use(app, client, credentials);
+        client.on('connect', () => {
+          messages.push('Redis Connected.', 'Flux backend started.');
 
-      client.on('connect', () => {
-        messages.push('Redis Connected.', 'Flux backend started.');
+          resolve([app, messages]);
+        });
+
+        client.on('error', err => {
+          console.log(`[REDIS ERROR] ${err.message}`);
+        });
+      } else {
+        use(app, undefined, credentials);
+        messages.push('Redis disabled...', 'Flux backend started.');
 
         resolve([app, messages]);
-      });
-
-      client.on('error', err => {
-        console.log(`[REDIS ERROR] ${err.message}`);
-      });
+      }
     } catch (err) {
       messages.push(`Error: ${err}`);
 
@@ -50,7 +56,7 @@ function runServer(): Promise<any[]> {
   });
 }
 
-runServer()
+runServer(!process.argv.includes('--no-redis'))
   .then(([app, messages]) => {
     messages.forEach(message => console.log(message));
 

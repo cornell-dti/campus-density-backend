@@ -16,7 +16,8 @@
   "scripts": {
     "build": "tsc -p ./",
     "start": "node build/server.js",
-    "dev": "npm run build && npm start"
+    "start-no-redis": "node build/server.js --no-redis",
+    "dev": "npm run build && npm run start-no-redis"
   },
   "dependencies": {
     "@google-cloud/datastore": "2.0.0",

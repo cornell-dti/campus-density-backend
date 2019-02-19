@@ -5,10 +5,6 @@ import { Redis } from 'ioredis';
 export function cache(key: (r: express.Request) => string, redis?: Redis) {
   if (redis) {
     return (req, res, next) => {
-      redis.on('error', err => {
-        next();
-      });
-
       redis.get(key(req), function d(error, data) {
         if (error) {
           // TODO
