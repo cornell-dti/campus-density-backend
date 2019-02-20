@@ -22,7 +22,7 @@ export default function routes(redis?: Redis, credentials?) {
         const data = JSON.stringify(facilityList.map(v => v.result));
 
         if (redis) {
-          redis.setex(facilityHoursKey(req), 60 * 10, data);
+          redis.setex(`/facilityList`, 60 * 10, data);
         }
 
         res.status(200).send(data);
@@ -44,7 +44,7 @@ export default function routes(redis?: Redis, credentials?) {
         const data = JSON.stringify(facilityInfo.map(v => v.result));
 
         if (redis) {
-          redis.setex(facilityHoursKey(req), 60 * 10, data);
+          redis.setex(facilityInfoKey(req), 60 * 10, data);
         }
 
         res.status(200).send(data);
