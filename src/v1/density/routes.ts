@@ -25,7 +25,7 @@ import { cache } from '../lib/cache';
 import Datastore = require('@google-cloud/datastore');
 
 export default function routes(redis?: Redis, credentials?) {
-  const datastore = new Datastore({ credentials });
+  const datastore = new Datastore(credentials ? { credentials } : undefined);
   const db = new DensityDB(datastore);
 
   const router = express.Router();
@@ -38,7 +38,11 @@ export default function routes(redis?: Redis, credentials?) {
       try {
         const query = await (req.query.id ? db.howDense(req.query.id) : db.howDense());
         const data = JSON.stringify(query.map(v => v.result));
-        redis.setex(key(req), 60, data);
+
+        if (redis) {
+          redis.setex(key(req), 60, data);
+        }
+
         res.status(200).send(data);
       } catch (err) {
         res.status(400).send(err);

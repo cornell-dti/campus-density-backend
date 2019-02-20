@@ -10,7 +10,7 @@ export default function routes(redis?: Redis, credentials?) {
   const router = express.Router();
 
   router.use('/', densityRoutes(redis, credentials));
-  router.use('/', facilityRoutes(undefined, credentials));
+  router.use('/', facilityRoutes(redis, credentials));
   router.use('/historicalData', historicalRoute);
 
   return router;
