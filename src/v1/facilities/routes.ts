@@ -43,7 +43,8 @@ export default function routes(redis?: Redis, credentials?) {
     })
   );
 
-  const facilityHoursKey = req => (req.query.id ? `/facilityHours?${req.query.id}` : `/facilityHours`);
+  const facilityHoursKey = req =>
+    `/facilityHours?${req.query.id || ''}${`&${req.query.startDate}` || ''}${`&${req.query.endDate}` || ''}`;
 
   router.get(
     '/facilityHours',
