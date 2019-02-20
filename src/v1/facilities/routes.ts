@@ -16,7 +16,7 @@ export default function routes(redis?: Redis, credentials?) {
   router.get(
     '/facilityList',
     cache(() => `/facilityList`, redis),
-    asyncify(async (req, res) => {
+    asyncify(async (req: express.Request, res: express.Response) => {
       try {
         const facilityList = await db.facilityList();
         res.status(200).send(facilityList.map(v => v.result.toJSON()));
@@ -44,19 +44,6 @@ export default function routes(redis?: Redis, credentials?) {
   );
 
   const facilityHoursKey = req => (req.query.id ? `/facilityHours?${req.query.id}` : `/facilityHours`);
-
-  router.get(
-    '/facilityInfo',
-    asyncify(async (req: express.Request, res: express.Response) => {
-      try {
-        res
-          .status(200)
-          .send((await (req.query.id ? db.facilityInfo(req.query.id) : db.facilityInfo())).map(v => v.result));
-      } catch (err) {
-        res.status(400).send(err.message);
-      }
-    })
-  );
 
   router.get(
     '/facilityHours',
