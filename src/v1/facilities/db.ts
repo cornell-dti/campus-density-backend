@@ -54,7 +54,8 @@ function getHoursInfo(id: string, hours: FacilityHoursDocument[], startDate: str
   for (let doc of hours) {
     if (doc.id == id) {
       for (let facilityHours of doc.hours) {
-        if (dateBegin <= facilityHours.date && dateEnd >= facilityHours.date) {
+        if (dateBegin <= moment(facilityHours.date, 'YYYY-MM-DD').tz('America/New_York').unix()
+        && dateEnd >=  moment(facilityHours.date, 'YYYY-MM-DD').tz('America/New_York').unix()) {
           validDailyHours.push(
             DailyHours.assign({
               date: facilityHours.date, 
