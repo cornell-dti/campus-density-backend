@@ -4,8 +4,7 @@ import { CampusLocation } from '../models/campus';
 import { DBQuery, DB, DatabaseQueryNoParams } from '../db';
 import { FacilityMetadata } from './models/list';
 import { FacilityHours, DailyHours } from './models/hours';
-
-const moment = require('moment-timezone');
+import * as moment from 'moment-timezone'
 
 function getInfo(id: string, hours: FacilityInfoDocument[]): FacilityInfo {
   const date = Math.floor(Date.now() / 1000);
@@ -159,7 +158,10 @@ export class FacilityDB extends DB {
       }
       else {
         if (startDate && endDate) {
-          // do stuff
+          return Object.keys(ID_MAP)
+          .map(id => getHoursInfo(id, hoursrange, startDate, endDate))
+          .filter(obj => obj != null)
+          .map(info => DB.query(info));
         }
         else {
           throw new Error(`Missing start and/or end date`); 
