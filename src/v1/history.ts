@@ -31,10 +31,9 @@ function format(analysis) {
     '23': -1
   });
 
-  return analysis.map(({ id, hours }) => {
+  return analysis.map(({ id, history }) => {
     const dailyHours = {};
-
-    Object.entries(hours).forEach(([k, v]) => {
+    Object.entries(history).forEach(([k, v]) => {
       dailyHours[k] = Object.assign(formattedHours(), v);
     });
 
