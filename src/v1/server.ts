@@ -11,7 +11,7 @@ export default function routes(redis?: Redis, credentials?) {
 
   router.use('/', densityRoutes(redis, credentials));
   router.use('/', facilityRoutes(redis, credentials));
-  router.use('/historicalData', historicalRoute);
+  router.get('/historicalData', historicalRoute);
 
   return router;
 }
