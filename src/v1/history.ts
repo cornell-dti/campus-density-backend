@@ -34,13 +34,14 @@ function format(analysis) {
   return analysis.map(({ id, hours }) => {
     const dailyHours = {};
 
-    return Object.entries(hours).map(([k, v]) => {
+    Object.entries(hours).forEach(([k, v]) => {
       dailyHours[k] = Object.assign(formattedHours(), v);
-      return {
-        id,
-        hours: dailyHours
-      };
     });
+
+    return {
+      id,
+      hours: dailyHours
+    };
   });
 }
 

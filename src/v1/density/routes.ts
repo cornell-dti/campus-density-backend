@@ -17,28 +17,38 @@
 
 import * as express from 'express';
 
+import { Redis } from 'ioredis';
 import asyncify from '../lib/asyncify';
 import { DensityDB } from './db';
+import { cache } from '../lib/cache';
 
 import Datastore = require('@google-cloud/datastore');
-const datastore = new Datastore();
-const router = express.Router();
 
-const db = new DensityDB(datastore);
+export default function routes(redis?: Redis, credentials?) {
+  const datastore = new Datastore(credentials ? { credentials } : undefined);
+  const db = new DensityDB(datastore);
 
-router.get(
-  '/howDense',
-  asyncify(async (req, res) => {
-    try {
-      if (req.query.id) {
-        res.status(200).send((await db.howDense(req.query.id)).map(v => v.result));
-      } else {
-        res.status(200).send((await db.howDense()).map(v => v.result));
+  const router = express.Router();
+  const key = req => `/howDense?${req.query.id || ''}`.toLowerCase();
+
+  router.get(
+    '/howDense',
+    cache(key, redis),
+    asyncify(async (req, res) => {
+      try {
+        const query = await (req.query.id ? db.howDense(req.query.id) : db.howDense());
+        const data = JSON.stringify(query.map(v => v.result));
+
+        if (redis) {
+          redis.setex(key(req), 60, data);
+        }
+
+        res.status(200).send(data);
+      } catch (err) {
+        res.status(400).send(err);
       }
-    } catch (err) {
-      res.status(400).send(err);
-    }
-  })
-);
+    })
+  );
 
-export default router;
+  return router;
+}
