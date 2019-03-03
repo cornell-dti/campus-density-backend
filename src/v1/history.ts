@@ -45,15 +45,7 @@ function format(analysis) {
 }
 
 function formatId(analysis, id) {
-  for (let hours of analysis) {
-    if (hours.id == id) {
-      return {
-        id, 
-        hours: hours.history
-      }
-    }
-  } 
-  return "ID NOT FOUND"; 
+  return analysis.find(v => v.id === id); 
 }
 
 export default function handler(req: express.Request, res: express.Response): void {
@@ -61,10 +53,15 @@ export default function handler(req: express.Request, res: express.Response): vo
     data = format(analysis);
   }
   if (req.query.id) {
-    data = formatId(analysis, req.query.id); 
-    if (data == "ID NOT FOUND") {
-      res.status(400).send("Invalid ID");
+    const d = formatId(data, req.query.id); 
+    if (d) {
+      res.status(200).send(JSON.stringify([d]));
+    }
+    else {
+      res.status(400).send("Invalid ID"); 
     }
   }
-  res.status(200).send(JSON.stringify(data));
+  else {
+    res.status(200).send(JSON.stringify(data));
+  }
 }
