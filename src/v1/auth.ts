@@ -30,21 +30,21 @@ const router = express.Router();
 // TODO Validate iOS vendor ids
 const UUID_VALIDATE_IOS = /[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}/;
 
+require('dotenv').config();
+let serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS); 
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://campus-density.firebaseio.com"
+});
+
 export async function authenticated(req, res, next){
-  require('dotenv').config();
-  let serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS); 
   if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
     res.status(403).send('Unauthorized'); 
     return; 
   }
-  await admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://campus-density.firebaseio.com"
-  });
   try {
     const idToken = req.headers.authorization.split('Bearer ')[1];
     const user = await admin.auth().verifyIdToken(idToken);
-    console.log(user); 
     next();
   }
   catch {

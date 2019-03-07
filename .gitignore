@@ -4,7 +4,7 @@ conf/**
 
 *.yaml
 gcloud-config.json
-campus-density-firebase-adminsdk-6rhdf-c50ce2aaec.json
+campus-density-firebase-adminsdk-6rhdf-97db95df98.json
 
 .vscode/**
 
