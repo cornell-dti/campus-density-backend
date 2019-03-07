@@ -16,7 +16,7 @@
  */
 
 import * as express from 'express';
-
+import * as admin from 'firebase-admin';
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 const Datastore = require('@google-cloud/datastore');
@@ -30,48 +30,68 @@ const router = express.Router();
 // TODO Validate iOS vendor ids
 const UUID_VALIDATE_IOS = /[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}/;
 
-export function authenticated(route): (req, res) => void {
-  return (...params) => {
-    const [req, res] = params;
-
-    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
-      res.status(403).send('Unauthorized');
-      return;
-    }
-
+export async function authenticated(req, res, next){
+  require('dotenv').config();
+  let serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS); 
+  if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+    res.status(403).send('Unauthorized'); 
+    return; 
+  }
+  await admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://campus-density.firebaseio.com"
+  });
+  try {
     const idToken = req.headers.authorization.split('Bearer ')[1];
-    const apiKey = process.env.AUTH_KEY;
-
-    if (idToken === apiKey) {
-      const token = req.headers['x-api-key'];
-      const query = datastore.createQuery('auth', 'auth_info').filter('token', '=', token);
-
-      datastore.runQuery(query, (err, tokens) => {
-        if (err) {
-          res.status(500).send('Failed to access token tables');
-          return;
-        }
-
-        if (/* Array.from( */ tokens /* ) */.length === 1) {
-          if (tokens[0].ios) {
-            route(...params, {
-              ios: true
-            });
-            return;
-          }
-          route(...params, {});
-        } else {
-          res.status(403).send('Unauthorized');
-        }
-      });
-
-      // TODO Add receipt/instanceId authentication
-      // const receipt = req.body.receipt;
-      // const instanceId = req.body.instanceId;
-    } else {
-      res.status(403).send('Unauthorized');
-    }
-  };
+    const user = await admin.auth().verifyIdToken(idToken);
+    console.log(user); 
+    next();
+  }
+  catch {
+    res.status(403).send('Unauthorized: Invalid ID'); 
+  }
 }
+// export function authenticated(route): (req, res) => void {
+//   return (...params) => {
+//     const [req, res] = params;
+//     if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
+//       res.status(403).send('Unauthorized');
+//       return;
+//     }
+
+//     const idToken = req.headers.authorization.split('Bearer ')[1];
+//     const apiKey = process.env.AUTH_KEY;
+
+//     if (idToken === apiKey) {
+//       const token = req.headers['x-api-key'];
+//       const query = datastore.createQuery('auth', 'auth_info').filter('token', '=', token);
+
+//       datastore.runQuery(query, (err, tokens) => {
+//         if (err) {
+//           res.status(500).send('Failed to access token tables');
+//           return;
+//         }
+
+//         if (/* Array.from( */ tokens /* ) */.length === 1) {
+//           if (tokens[0].ios) {
+//             route(...params, {
+//               ios: true
+//             });
+//             return;
+//           }
+//           route(...params, {});
+//         } else {
+//           res.status(403).send('Unauthorized');
+//         }
+//       });
+
+//       // TODO Add receipt/instanceId authentication
+//       // const receipt = req.body.receipt;
+//       // const instanceId = req.body.instanceId;
+//     } else {
+//       res.status(403).send('Unauthorized');
+//     }
+//   };
+// }
 
 export default router;

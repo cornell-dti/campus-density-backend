@@ -5,6 +5,7 @@ import v2 from './v2/server';
 
 let credentials;
 
+
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 } else {
