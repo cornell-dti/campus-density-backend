@@ -72,7 +72,7 @@ export default function routes(redis?: Redis, credentials?) {
         res.status(200).send(data);
       } catch (err) {
         // TODO Send actual error codes based on errors. (this applies to all routes)
-        res.status(400).send(err);
+        res.status(400).send(err.message);
       }
     })
   );

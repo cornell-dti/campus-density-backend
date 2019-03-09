@@ -151,6 +151,9 @@ export class FacilityDB extends DB {
               return [DB.query(hoursInfo, id)];
             }
           }
+          else {
+            throw new Error(`Invalid ID`); 
+          }
         }
         else {
           throw new Error(`Missing start and/or end date`); 
@@ -167,11 +170,10 @@ export class FacilityDB extends DB {
           throw new Error(`Missing start and/or end date`); 
         }
       }
-      return null; 
+      throw new Error(`Need to include dates and facility id`); 
     }
     catch (err) {
-      console.log(err.message);
-      throw new Error(`Failed to access backend.`);
+      throw new Error(err.message);
     }
   }
 }
