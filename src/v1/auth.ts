@@ -30,7 +30,6 @@ const router = express.Router();
 // TODO Validate iOS vendor ids
 const UUID_VALIDATE_IOS = /[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}/;
 
-require('dotenv').config();
 let serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS); 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
