@@ -17,26 +17,27 @@
 
 import * as express from 'express';
 import * as admin from 'firebase-admin';
+
 const router = express.Router();
 
-let serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS); 
+const serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: process.env.FIREBASE_URL
 });
 
-export async function authenticated(req, res, next){
+export async function authenticated(req, res, next) {
   if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
-    res.status(401).send('Unauthorized'); 
-    return; 
+    res.status(401).send('Unauthorized');
+    return;
   }
+  
   try {
     const idToken = req.headers.authorization.split('Bearer ')[1];
     const user = await admin.auth().verifyIdToken(idToken);
     next();
-  }
-  catch {
-    res.status(403).send('Unauthorized: Invalid token ID'); 
+  } catch {
+    res.status(403).send('Unauthorized: Invalid token ID');
   }
 }
 
