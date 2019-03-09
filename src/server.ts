@@ -1,16 +1,13 @@
 import * as express from 'express';
 import * as Redis from 'ioredis';
+
+/* env.ts must be first non-dependency import */
+import env from './env';
 import v1 from './v1/server';
 import v2 from './v2/server';
 
-let credentials;
-
-
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
-} else {
-  credentials = JSON.parse(process.env.GCLOUD_CONFIG);
-}
+/* env() must be called or it will be optimized out of the final build */
+env();
 
 function use(app: express.Application, redis, credentials) {
   app.use('/v1', v1(redis, credentials));
@@ -19,6 +16,12 @@ function use(app: express.Application, redis, credentials) {
 
 function runServer(startRedis?: boolean): Promise<any[]> {
   console.log('Starting Flux backend...');
+
+  let credentials;
+
+  if (process.env.GCLOUD_CONFIG) {
+    credentials = JSON.parse(process.env.GCLOUD_CONFIG);
+  }
 
   const app = express();
 
