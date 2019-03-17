@@ -31,7 +31,6 @@ export async function authenticated(req, res, next) {
     res.status(401).send('Unauthorized');
     return;
   }
-  
   try {
     const idToken = req.headers.authorization.split('Bearer ')[1];
     const user = await admin.auth().verifyIdToken(idToken);
