@@ -1,10 +1,10 @@
 node_modules/
-historical-storage/
-.env.*.yaml
-.openapi.yaml
-app.yaml
-cron.yaml
-
 build/**
 conf/**
+
+*.yaml
+gcloud-config.json
+
 .vscode/**
+
+.env
