@@ -44,7 +44,7 @@ export default function routes(redis?: Redis, credentials?) {
         const data = JSON.stringify(facilityInfo.map(v => v.result));
 
         if (redis) {
-          redis.setex(facilityInfoKey(req), 30, data);
+          redis.setex(`/facilityInfo`, 30, data);
         }
 
         res.status(200).send(data);
@@ -65,6 +65,8 @@ export default function routes(redis?: Redis, credentials?) {
         const facilityHours = await db.facilityHours(req.query.id, req.query.startDate, req.query.endDate);
         const data = JSON.stringify(facilityHours.map(v => v.result));
 
+
+        console.log(facilityHoursKey(req)); 
         if (redis) {
           redis.setex(facilityHoursKey(req), 60 * 10, data);
         }
