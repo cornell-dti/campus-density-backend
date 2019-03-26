@@ -33,14 +33,14 @@ export default function routes(redis?: Redis, credentials?) {
 
   router.get(
     '/howDense',
-    cache(() => `/howDense`, redis),
+    cache(key, redis),
     asyncify(async (req, res) => {
       try {
         const query = await (req.query.id ? db.howDense(req.query.id) : db.howDense());
         const data = JSON.stringify(query.map(v => v.result));
 
         if (redis) {
-          redis.setex(`/howDense`, 60, data);
+          redis.setex(key(req), 60, data);
         }
 
         res.status(200).send(data);
