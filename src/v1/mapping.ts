@@ -1,16 +1,16 @@
 export const DISPLAY_MAP = {
-  cook: 'Alice Cook House',
+  cook: 'Cook House Dining Room',
   cafejennie: 'Cafe Jennie',
-  becker: 'Carl Becker House',
+  becker: 'Becker House Dining Room',
   bethe: 'Jansen\'s at Bethe House',
-  keeton: 'Keeton House',
+  keeton: 'Keeton House Dining Room',
   west104: '104West!',
   appel: 'North Star at Appel',
   okies: 'Okenshields',
-  libe: 'Olin Libe Cafe',
-  rpcc: 'RPCC Dining Hall',
+  libe: 'Amit Bhatia\'s Libe Cafe',
+  rpcc: 'Robert Purcell Market Eatery',
   risley: 'Risley',
-  rose: 'Rose Dining Hall'
+  rose: 'Rose House Dining Room'
 };
 
 export const ID_MAP = {
