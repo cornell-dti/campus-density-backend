@@ -8,7 +8,7 @@ export const DISPLAY_MAP = {
   appel: 'North Star at Appel',
   okies: 'Okenshields',
   libe: 'Amit Bhatia\'s Libe Cafe',
-  rpcc: 'Robert Purcell Marketplace Eatery',
+  rpcc: 'RPME',
   risley: 'Risley',
   rose: 'Rose House Dining Room'
 };
