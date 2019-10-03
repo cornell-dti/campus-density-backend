@@ -2,7 +2,7 @@
 
 /* rockon999 // Evan Welsh */
 
-/* globals Symbol */
+/* this is a global Symbol */
 const jsonobj = Symbol('jsonobj');
 
 type TypeFunc = (val: JSONDoc | JSONDoc[]) => boolean;
@@ -31,7 +31,7 @@ export interface TypeDefFactory {
 export class OptionalTypeDef {
   optional: boolean;
 
-  constructor(optional: boolean = false) {
+  constructor(optional = false) {
     this.optional = optional;
   }
 }
@@ -39,7 +39,7 @@ export class OptionalTypeDef {
 export class EnumTypeDef<K> extends OptionalTypeDef implements TypeDef {
   enumValues: any[];
 
-  constructor(enumDef: K, optional: boolean = false) {
+  constructor(enumDef: K, optional = false) {
     super(optional);
     this.enumValues = Object.values(enumDef);
   }
@@ -56,7 +56,7 @@ export class EnumTypeDef<K> extends OptionalTypeDef implements TypeDef {
 export class PrimitiveArrayTypeDef extends OptionalTypeDef implements DynamicTypeDef {
   primitiveType: string;
 
-  constructor(primitiveType: 'number' | 'boolean' | 'string', optional: boolean = false) {
+  constructor(primitiveType: 'number' | 'boolean' | 'string', optional = false) {
     super(optional);
     this.primitiveType = primitiveType;
   }
@@ -69,7 +69,7 @@ export class PrimitiveArrayTypeDef extends OptionalTypeDef implements DynamicTyp
 export class ArrayTypeDef<K extends JSONObject> extends OptionalTypeDef implements DynamicTypeDef {
   private constr: (data: JSONDoc) => K;
 
-  constructor(constructor: Constructable<K> & { fromJSON(data: JSONDoc): K }, optional: boolean = false) {
+  constructor(constructor: Constructable<K> & { fromJSON(data: JSONDoc): K }, optional = false) {
     super(optional);
 
     this.constr = data => constructor.fromJSON(data);
@@ -88,7 +88,7 @@ export class MapTypeDef<K extends JSONObject> implements DynamicTypeDef {
   arrayTypeDef: ArrayTypeDef<K>;
   key: string;
 
-  constructor(constructor: Constructable<K> & { fromJSON(data: JSONDoc): K }, key: string, optional: boolean = false) {
+  constructor(constructor: Constructable<K> & { fromJSON(data: JSONDoc): K }, key: string, optional = false) {
     this.key = key;
     this.arrayTypeDef = new ArrayTypeDef(constructor, optional);
   }
@@ -113,7 +113,7 @@ export class JSONObjectTypeDef<K extends JSONObject> extends OptionalTypeDef imp
 
   private constr: (data) => K;
 
-  constructor(constructor: Constructable<K> & { fromJSON(data: JSONDoc): K }, optional: boolean = false) {
+  constructor(constructor: Constructable<K> & { fromJSON(data: JSONDoc): K }, optional = false) {
     super(optional);
 
     this.constr = data => constructor.fromJSON(data);
@@ -162,6 +162,7 @@ export interface JSONObject {
 export type Assignable = number | string | boolean | JSONObject;
 
 export class InternalJSONObject {
+  // @ts-ignore
   ___jsonprops___: StrictTypeStruct = this.___jsonprops___ || {};
 }
 
@@ -228,7 +229,7 @@ export class JSONObject extends InternalJSONObject {
 
   static typedef<T extends JSONObject>(
     this: { new (): T; fromJSON(json: JSONDoc): T },
-    optional: boolean = false
+    optional = false
   ): TypeDef {
     return {
       type: jsonobj,
@@ -296,14 +297,14 @@ export function nullable<T extends JSONObject>(target: T, propertyKey: string): 
 export namespace typedefs {
   export function primitiveArrayOf(
     primitiveType: 'string' | 'number' | 'boolean',
-    optional: boolean = false
+    optional = false
   ): PrimitiveArrayTypeDef {
     return new PrimitiveArrayTypeDef(primitiveType, optional);
   }
 
   export function arrayOf<K extends JSONObject>(
     constructor: Constructable<K> & { fromJSON(data: JSONDoc): K },
-    optional: boolean = false
+    optional = false
   ): ArrayTypeDef<K> {
     return new ArrayTypeDef<K>(constructor, optional);
   }
@@ -311,12 +312,12 @@ export namespace typedefs {
   export function mapOf<K extends JSONObject>(
     constructor: Constructable<K> & { fromJSON(data: JSONDoc): K },
     key: string,
-    optional: boolean = false
+    optional = false
   ): MapTypeDef<K> {
     return new MapTypeDef<K>(constructor, key, optional);
   }
 
-  export function ofEnum<K>(enumDef: K, optional: boolean = false): EnumTypeDef<K> {
+  export function ofEnum<K>(enumDef: K, optional = false): EnumTypeDef<K> {
     return new EnumTypeDef<K>(enumDef, optional);
   }
 }
@@ -347,9 +348,11 @@ export function JSONEnum<K, T extends JSONObject>(enumDef: K): (target: T, prope
 export function JSONParsable(value: TypeStruct = {}) {
   return function def<T extends { new (...args: any[]): JSONObject }>(constructor: T) {
     return class StaticThis extends constructor implements JSONObject {
+      // @ts-ignore
       ___jsontypes___: TypeStruct = this.___jsontypes___
-        ? Object.assign(Object.assign({ ...this.___jsontypes___ }, this.___jsonprops___), value)
-        : Object.assign({ ...(this.___jsonprops___ || {}) }, value);
+        // @ts-ignore
+        ? ({...this.___jsontypes___, ...this.___jsonprops___, ...value})
+        : ({...(this.___jsonprops___ || {}), ...value});
 
       types(): TypeStruct {
         return this.___jsontypes___;

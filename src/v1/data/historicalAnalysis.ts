@@ -1,3 +1,5 @@
+/* eslint-disable quotes */
+
 type DayString = 'SUN' | 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT';
 type HourString =
   | '0'
@@ -31,7 +33,7 @@ export const analysis: {
 }[] = [
   {
       "id": "libe",
-      "history": 
+      "history":
       {
           "SUN": {
           "7": -1,
@@ -1550,7 +1552,7 @@ export const analysis: {
 },
   {
       "id": "keeton",
-      "history": { 
+      "history": {
           "SUN": {
           "7": -1,
           "8": -1,
