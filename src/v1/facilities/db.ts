@@ -169,9 +169,7 @@ export class FacilityDB extends DB {
           .filter(obj => obj != null)
           .map(info => DB.query(info));
         }
-
-          throw new Error(`Missing start and/or end date`);
-
+        throw new Error(`Missing start and/or end date`);
       }
       throw new Error(`Need to include dates and facility id`);
     }
