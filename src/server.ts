@@ -2,12 +2,9 @@ import * as express from 'express';
 import * as Redis from 'ioredis';
 
 /* env.ts must be first non-dependency import */
-import env from './env';
+import './env';
 import v1 from './v1/server';
 import v2 from './v2/server';
-
-/* env() must be called or it will be optimized out of the final build */
-env();
 
 function use(app: express.Application, redis, credentials) {
   app.use('/v1', v1(redis, credentials));

@@ -20,6 +20,7 @@ module.exports = {
     'lines-between-class-members': ['off'],
     '@typescript-eslint/explicit-member-accessibility': ['off'],
     '@typescript-eslint/no-useless-constructor': [1],
+    '@typescript-eslint/ban-ts-ignore': ['warn'],
     'no-useless-constructor': ['off'],
     'import/no-unresolved': ['off'],
     'import/prefer-default-export': ['off'],
@@ -52,6 +53,8 @@ module.exports = {
       }
     ],
     'max-len': ['warn', { code: 120 }],
+    'max-classes-per-file': ['off'],
+    'no-console': 'off',
     // allow debugger during development
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
   }

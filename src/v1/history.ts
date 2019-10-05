@@ -58,7 +58,7 @@ export default function handler(req: express.Request, res: express.Response): vo
       res.status(200).send(JSON.stringify([d]));
     }
     else {
-      res.status(400).send("Invalid ID"); 
+      res.status(400).send('Invalid ID'); 
     }
   }
   else {
