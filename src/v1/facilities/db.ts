@@ -55,7 +55,7 @@ function getHoursInfo(id: string, hours: FacilityHoursDocument[], startDate: str
     if (doc.id === id) {
       for (const facilityHours of doc.hours) {
         if (dateBegin <= moment(facilityHours.date, 'YYYY-MM-DD').tz('America/New_York').unix()
-        && dateEnd >=  moment(facilityHours.date, 'YYYY-MM-DD').tz('America/New_York').unix()) {
+          && dateEnd >= moment(facilityHours.date, 'YYYY-MM-DD').tz('America/New_York').unix()) {
           validDailyHours.push(
             DailyHours.assign({
               date: facilityHours.date,
@@ -139,8 +139,8 @@ export class FacilityDB extends DB {
 
   async facilityHours(
     facilityId?: string, startDate?: string, endDate?: string,
-  ): Promise<DBQuery<string, FacilityHours>[]>  {
-    const {datastore} = this;
+  ): Promise<DBQuery<string, FacilityHours>[]> {
+    const { datastore } = this;
     const query = datastore.createQuery('development-testing-hours');
     try {
       const [hoursrange] = await datastore.runQuery(query);
@@ -165,9 +165,9 @@ export class FacilityDB extends DB {
       else {
         if (startDate && endDate) {
           return Object.keys(ID_MAP)
-          .map(id => getHoursInfo(id, hoursrange, startDate, endDate))
-          .filter(obj => obj != null)
-          .map(info => DB.query(info));
+            .map(id => getHoursInfo(id, hoursrange, startDate, endDate))
+            .filter(obj => obj != null)
+            .map(info => DB.query(info));
         }
         throw new Error(`Missing start and/or end date`);
       }
