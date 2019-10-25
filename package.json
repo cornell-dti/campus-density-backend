@@ -10,7 +10,7 @@
     "url": "https://github.com/cornell-dti/campus-density-backend"
   },
   "engines": {
-    "node": ">=10"
+    "node": "=10"
   },
   "heroku-run-build-script": true,
   "scripts": {
