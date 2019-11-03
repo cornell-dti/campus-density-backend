@@ -13,7 +13,8 @@ export class DiningDB extends DB {
   async getMenus(facilityId?: string): Promise<DBQuery<string, DiningDocument>[]> {
     const { datastore } = this;
     const query = datastore.createQuery('dining');
-    const [entities] = await datastore.runQuery(query);
+    let [entities] = await datastore.runQuery(query);
+    entities = entities.filter(e => e.id in ID_MAP);
     if (facilityId) {
       const id = facilityId;
       const entity = entities.find(e => e.id === Util.strip(facilityId));
