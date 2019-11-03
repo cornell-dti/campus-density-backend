@@ -7,7 +7,7 @@ export class Meals extends JSONObject {
 }
 
 @JSONParsable({ description: 'string', startTime: 'number', endTime: 'number' })
-export class DailyMenu extends JSONObject {
+export class MealMenu extends JSONObject {
   description: string;
   startTime: number;
   endTime: number;
@@ -15,9 +15,16 @@ export class DailyMenu extends JSONObject {
   menu: Meals[];
 }
 
+@JSONParsable({ day: 'string' })
+export class DayMenu extends JSONObject {
+  day: string;
+  @JSONArray(MealMenu)
+  menus: MealMenu[];
+}
+
 @JSONParsable({ id: 'string' })
 export class DiningDocument extends JSONObject {
   id: string;
-  @JSONArray(DailyMenu)
-  weeksMenus: DailyMenu[];
+  @JSONArray(DayMenu)
+  weeksMenus: DayMenu[];
 }
