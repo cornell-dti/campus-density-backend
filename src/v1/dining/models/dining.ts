@@ -15,9 +15,9 @@ export class MealMenu extends JSONObject {
   menu: Meals[];
 }
 
-@JSONParsable({ day: 'string' })
+@JSONParsable({ date: 'string' })
 export class DayMenu extends JSONObject {
-  day: string;
+  date: string;
   @JSONArray(MealMenu)
   menus: MealMenu[];
 }
