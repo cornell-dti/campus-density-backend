@@ -33,7 +33,7 @@ export class DiningDB extends DB {
       return entities.map(e => {
         return DB.query(
           DiningDocument.assign({
-            id: DISPLAY_MAP[e.id],
+            id: e.id,
             weeksMenus: e.weeksMenus
           })
         );
