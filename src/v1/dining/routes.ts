@@ -12,9 +12,12 @@ export default function routes(redis?: Redis, credentials?) {
   const db = new DiningDB(datastore);
 
   const router = express.Router();
+
+  const menuKey = req => (req.query.id ? `/menuData?${req.query.facility}` : `/menuData`);
+
   router.get(
     '/menuData',
-    cache(() => `/menuData`, redis),
+    cache(menuKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
         const menuList = await (req.query.facility ? db.getMenus(req.query.facility) : db.getMenus());
