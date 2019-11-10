@@ -14,7 +14,6 @@ export class DensityDB extends DB {
     const { datastore } = this;
     const query = datastore.createQuery('density', 'density_info');
     const [entities] = await datastore.runQuery(query);
-
     if (facilityId) {
       const id = facilityId;
       const entity = entities.find(e => e.id === Util.strip(ID_MAP[id]));
