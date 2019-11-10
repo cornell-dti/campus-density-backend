@@ -13,7 +13,7 @@ export default function routes(redis?: Redis, credentials?) {
 
   const router = express.Router();
 
-  const menuKey = req => (req.query.id ? `/menuData?${req.query.facility}` : `/menuData`);
+  const menuKey = req => (req.query.facility ? `/menuData?${req.query.facility}` : `/menuData`);
 
   router.get(
     '/menuData',
