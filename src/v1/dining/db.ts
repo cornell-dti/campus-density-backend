@@ -25,23 +25,23 @@ export class DiningDB extends DB {
       let d = date;
       const lowercaseInput = date.toLowerCase();
       const dt = new Date();
-      if (lowercaseInput === "today") {
+      if (lowercaseInput === 'today') {
         d = dt.toISOString().slice(0, 10);
       }
-      else if (lowercaseInput === "tomorrow") {
+      else if (lowercaseInput === 'tomorrow') {
         dt.setDate(dt.getDate() + 1);
         d = dt.toISOString().slice(0, 10);
       }
-      else if (lowercaseInput === "yesterday") {
+      else if (lowercaseInput === 'yesterday') {
         dt.setDate(dt.getDate() - 1);
         d = dt.toISOString().slice(0, 10);
       }
-      if (!isNaN(Date.parse(d))) {
+      if (!Number.isNaN(Date.parse(d))) {
         result = result.map(e =>
           e.weeksMenus.filter(m => m.date === d));
       }
       else {
-        throw new Error("Invalid Date");
+        throw new Error('Invalid Date');
       }
     }
     return [DB.query(result)];
