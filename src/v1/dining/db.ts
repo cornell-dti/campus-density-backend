@@ -10,34 +10,40 @@ export class DiningDB extends DB {
   }
   /* eslint-enable */
 
-  async getMenus(facilityId?: string): Promise<DBQuery<string, DiningDocument>[]> {
+  async getMenus(facilityId?: string, date?: string): Promise<DBQuery<string, DiningDocument>[]> {
     const { datastore } = this;
     const query = datastore.createQuery('dining');
     let [entities] = await datastore.runQuery(query);
     entities = entities.filter(e => e.id in ID_MAP);
+    let result = entities;
     if (facilityId) {
-      const id = facilityId;
-      const entity = entities.find(e => e.id === Util.strip(facilityId));
-      if (entity && id in ID_MAP) {
-        return [
-          DB.query(
-            DiningDocument.assign({
-              id,
-              weeksMenus: entity.weeksMenus
-            })
-          )
-        ];
+      if (facilityId in ID_MAP) {
+        result = result.filter(e => e.id === facilityId);
       }
-      throw new Error('Invalid ID');
-    } else {
-      return entities.map(e => {
-        return DB.query(
-          DiningDocument.assign({
-            id: e.id,
-            weeksMenus: e.weeksMenus
-          })
-        );
-      });
     }
+    if (date) {
+      let d = date;
+      const lowercaseInput = date.toLowerCase();
+      const dt = new Date();
+      if (lowercaseInput === "today") {
+        d = dt.toISOString().slice(0, 10);
+      }
+      else if (lowercaseInput === "tomorrow") {
+        dt.setDate(dt.getDate() + 1);
+        d = dt.toISOString().slice(0, 10);
+      }
+      else if (lowercaseInput === "yesterday") {
+        dt.setDate(dt.getDate() - 1);
+        d = dt.toISOString().slice(0, 10);
+      }
+      if (!isNaN(Date.parse(d))) {
+        result = result.map(e =>
+          e.weeksMenus.filter(m => m.date === d));
+      }
+      else {
+        throw new Error("Invalid Date");
+      }
+    }
+    return [DB.query(result)];
   }
 }
