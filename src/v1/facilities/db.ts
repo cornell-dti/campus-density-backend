@@ -138,7 +138,7 @@ export class FacilityDB extends DB {
   }
 
   async facilityHours(
-    facilityId?: string, startDate?: string, endDate?: string,
+    facilityId?: string, startDate?: string, endDate?: string
   ): Promise<DBQuery<string, FacilityHours>[]> {
     const { datastore } = this;
     const query = datastore.createQuery('development-testing-hours');
