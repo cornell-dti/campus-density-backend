@@ -37,8 +37,10 @@ export class DiningDB extends DB {
         d = dt.toISOString().slice(0, 10);
       }
       if (!Number.isNaN(Date.parse(d))) {
-        result = result.map(e =>
-          e.weeksMenus.filter(m => m.date === d));
+        result = result.map(e => [{
+          id: e.id,
+          weeksMenus: e.weeksMenus.filter(m => m.date === d)
+        }])[0];
       }
       else {
         throw new Error('Invalid Date');
