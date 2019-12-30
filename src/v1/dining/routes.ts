@@ -25,7 +25,7 @@ export default function routes(redis?: Redis, credentials?) {
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
         const menuList = await (db.getMenus(req.query.facility, req.query.date));
-        const data = JSON.stringify(menuList.map(v => v.result));
+        const data = JSON.stringify(menuList.map(v => v.result)[0]);
 
         if (redis) {
           redis.setex(`/menuData`, 60 * 10, data);
