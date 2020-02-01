@@ -13,14 +13,22 @@ export default function routes(redis?: Redis, credentials?) {
 
   const router = express.Router();
 
-  const menuKey = req =>
-    (req.query.facility ? `/menuData?${req.query.facility}` : `/menuData`);
-  const dateKey = req =>
-    (req.query.date ? `/menuData?${req.query.date}` : `/menuData`);
+  const cacheKey = req => {
+    if (req.query.facility && req.query.date) {
+      return `/menuData?${req.query.facility}&${req.query.date}`;
+    }
+    if (req.query.facility) {
+      return `/menuData?${req.query.facility}`
+    }
+    if (req.query.date) {
+      return `/menuData?${req.query.date}`
+    }
+    return `/menuData`
+  }
 
   router.get(
     '/menuData',
-    cache(menuKey, redis),
+    cache(cacheKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
         const menuList = await (db.getMenus(req.query.facility, req.query.date));
