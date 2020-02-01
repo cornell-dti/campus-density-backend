@@ -21,7 +21,6 @@ export default function routes(redis?: Redis, credentials?) {
   router.get(
     '/menuData',
     cache(menuKey, redis),
-    cache(dateKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
         const menuList = await (db.getMenus(req.query.facility, req.query.date));
