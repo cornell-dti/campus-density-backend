@@ -97,5 +97,27 @@ export default function routes(redis?: Redis, credentials?) {
     })
   );
 
+  const gymFacilityHoursKey = req => `/gymFacilityHours?${req.query.id || ''}${`&${req.query.date}` || ''}`
+
+  router.get(
+    '/gymFacilityHours',
+    // cache(gymFacilityHoursKey, redis),
+    asyncify(async (req, res) => {
+      try {
+        const gymFacilityHours = await db.gymFacilityHours(req.query.id, req.query.date);
+        const data = JSON.stringify(gymFacilityHours)
+        if (redis) {
+          redis.setex(facilityHoursKey(req), 60 * 10, data);
+        }
+
+        res.status(200).send(data);
+      }
+      catch (err) {
+        // TODO Send actual error codes based on errors. (this applies to all routes)
+        res.status(400).send(err.message);
+      }
+    })
+  )
+
   return router;
 }

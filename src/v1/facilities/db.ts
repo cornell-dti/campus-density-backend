@@ -1,4 +1,5 @@
 import * as moment from 'moment-timezone'
+import {firebaseDB} from '../auth';
 import { ID_MAP, DISPLAY_MAP, GYM_DISPLAY_MAP } from '../mapping';
 import { FacilityHourSet, FacilityInfo } from './models/info';
 import { CampusLocation } from '../models/campus';
@@ -137,6 +138,7 @@ export class FacilityDB extends DB {
     );
   }
 
+  // Should I just go ahead and delete these then
   async efacilityList(): /* eslint-disable-line class-methods-use-this */ Promise<
     DatabaseQueryNoParams<FacilityMetadata>[]> {
     return Object.keys(DISPLAY_MAP).map(key =>
@@ -200,5 +202,19 @@ export class FacilityDB extends DB {
     catch (err) {
       throw new Error(err.message);
     }
+  }
+
+async gymFacilityHours(facilityId?: string, date?: string) {
+  if(facilityId) {
+    return (await firebaseDB.collection("gymInfo").doc(facilityId).get()).data();
+  }
+  let data = []
+  const queryResult = await firebaseDB.collection("gymInfo").get()
+  for (let doc of queryResult.docs) {
+    let docData = doc.data();
+    docData.id = doc.id
+    data.push(docData)
+  }
+  return data
   }
 }
