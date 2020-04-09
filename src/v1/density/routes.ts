@@ -50,5 +50,19 @@ export default function routes(redis?: Redis, credentials?) {
     })
   );
 
+  router.get(
+    '/gymHowDense',
+    asyncify(async (req, res) => {
+      try {
+        const queryResult = await (req.query.id ? db.gymHowDense(req.query.id) : db.gymHowDense());
+        const data = JSON.stringify(queryResult)
+        res.status(200).send(data);
+      } catch (err) {
+        console.log(err)
+        res.status(400).send(err);
+      }
+    })
+  );
+
   return router;
 }
