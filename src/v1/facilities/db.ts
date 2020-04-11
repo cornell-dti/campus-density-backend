@@ -168,8 +168,10 @@ export class FacilityDB extends DB {
   async gymFacilityHours(
     facilityId?: string, date?: string
   ) {
-    const appelRef = await fb_db.collection('gymInfo').doc('noyes');
-    return appelRef
+    if (facilityId) {
+
+    }
+    return (await fb_db.collection('gymInfo').doc('noyes').get()).data();
   }
 
   async facilityHours(
