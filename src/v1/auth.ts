@@ -25,6 +25,7 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: process.env.FIREBASE_URL
 });
+export const firebaseDB = admin.firestore()
 
 export async function authenticated(req, res, next) {
   if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer ')) {
