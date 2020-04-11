@@ -1,10 +1,13 @@
 import * as moment from 'moment-timezone'
+import * as admin from 'firebase-admin';
 import { ID_MAP, DISPLAY_MAP, GYM_DISPLAY_MAP } from '../mapping';
 import { FacilityHourSet, FacilityInfo } from './models/info';
 import { CampusLocation } from '../models/campus';
 import { DBQuery, DB, DatabaseQueryNoParams } from '../db';
 import { FacilityMetadata } from './models/list';
 import { FacilityHours, DailyHours } from './models/hours';
+
+const fb_db = admin.firestore()
 
 function getInfo(id: string, hours: FacilityInfoDocument[]): FacilityInfo {
   const date = Math.floor(Date.now() / 1000);
@@ -137,6 +140,7 @@ export class FacilityDB extends DB {
     );
   }
 
+  // Should I just go ahead and delete these then
   async efacilityList(): /* eslint-disable-line class-methods-use-this */ Promise<
     DatabaseQueryNoParams<FacilityMetadata>[]> {
     return Object.keys(DISPLAY_MAP).map(key =>
@@ -159,6 +163,13 @@ export class FacilityDB extends DB {
         })
       )
     );
+  }
+
+  async gymFacilityHours(
+    facilityId?: string, date?: string
+  ) {
+    const appelRef = await fb_db.collection('gymInfo').doc('noyes');
+    return appelRef
   }
 
   async facilityHours(
