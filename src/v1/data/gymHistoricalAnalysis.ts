@@ -1,5 +1,18 @@
 import { firebaseDB } from '../auth'
 
+/**
+ * This function computes the historical average of the weight and cardio occupancies
+ * by computing the mean of the respective values for every day on every time slot. 
+ * For example, the output of this function will store the averages as { Monday: {11:15AM: {cardioAverage: 13, weightAverage: 12.5},
+ *                                                                                {12:30PM: {cardioAverage: 15, weightAverage: 20}}}}
+ * The counts of the entries for cardio and weight on each day for each time are recorded in a similar format. 
+ * 
+ * This function also goes through the entire collection of history documents, and should only be used
+ * when the all the historical averages need to be computed from scratch.  
+ * 
+ * @param facility The facility id of the facility we are computing the historical
+ * average of.
+ */
 export const getAverageHistoricalData = async (facility) => {
   return new Promise(async (resolve, reject) => {
     let mappingAverage = {} // {Monday: 11:30 AM: {cardoSum: 300, weightSum: 400}}
@@ -15,6 +28,7 @@ export const getAverageHistoricalData = async (facility) => {
           Object.keys(docDataContents).forEach(time => { // The keys of the JSON are the times for a specific day
             let occupancy = docDataContents[time]
             if (!(dayForData in mappingAverage)) { //Create the appropriate mapping for the day if it doesn't exist
+              // Throughout this function, whenever we encounter a -1 (implying there's no one there), we simply substitute with a 0. 
               mappingAverage[dayForData] = {}
               mappingAverage[dayForData][time] = {
                 cardioAverage:
@@ -26,7 +40,7 @@ export const getAverageHistoricalData = async (facility) => {
               mappingCount[dayForData][time] = { cardioCount: 1, weightCount: 1 }
 
             } else {
-              // Check if a specific time has been added to the mappings
+              // Check if a specific time has been added to the mappings.
               if (!(time in mappingAverage[dayForData])) {
                 mappingAverage[dayForData][time] = {
                   cardioAverage:
@@ -37,6 +51,8 @@ export const getAverageHistoricalData = async (facility) => {
                 mappingCount[dayForData][time] = { cardioCount: 1, weightCount: 1 }
               } else {
                 // The current day and time already exist, adjust values in mappings.
+
+                // Compute the new average based on the current acccumulation by (newVal + oldAverage * oldCount)/(oldCount + 1)
                 mappingAverage[dayForData][time]['cardioAverage'] =
                   ((occupancy.cardio == -1 ? 0 : occupancy.cardio)
                     + mappingAverage[dayForData][time]['cardioAverage']
@@ -49,6 +65,7 @@ export const getAverageHistoricalData = async (facility) => {
                     * mappingCount[dayForData][time]['weightCount'])
                   / (mappingCount[dayForData][time]['weightCount'] + 1)
 
+                // Update mapping counts. 
                 mappingCount[dayForData][time]['cardioCount'] += 1
                 mappingCount[dayForData][time]['weightCount'] += 1
               }
