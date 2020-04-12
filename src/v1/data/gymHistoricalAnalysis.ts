@@ -2,7 +2,7 @@ import { firebaseDB } from '../auth'
 
 export const getAverageHistoricalData = async (facility) => {
   return new Promise(async (resolve, reject) => {
-    let mappingSum = {} // {Monday: 11:30 AM: {cardoSum: 300, weightSum: 400}}
+    let mappingAverage = {} // {Monday: 11:30 AM: {cardoSum: 300, weightSum: 400}}
     let mappingCount = {} // {11:30 AM: {cardoSum: 30, weightSum: 40}}
     await firebaseDB.collection('gymHistory')
       .doc(facility) //get facility
@@ -14,12 +14,12 @@ export const getAverageHistoricalData = async (facility) => {
           let dayForData = doc.data().day
           Object.keys(docDataContents).forEach(time => { // The keys of the JSON are the times for a specific day
             let occupancy = docDataContents[time]
-            if (!(dayForData in mappingSum)) { //Create the appropriate mapping for the day if it doesn't exist
-              mappingSum[dayForData] = {}
-              mappingSum[dayForData][time] = {
-                cardioSum:
+            if (!(dayForData in mappingAverage)) { //Create the appropriate mapping for the day if it doesn't exist
+              mappingAverage[dayForData] = {}
+              mappingAverage[dayForData][time] = {
+                cardioAverage:
                   (occupancy.cardio == -1 ? 0 : occupancy.cardio),
-                weightSum:
+                weightAverage:
                   (occupancy.weights == -1 ? 0 : occupancy.weights)
               }
               mappingCount[dayForData] = {}
@@ -27,25 +27,35 @@ export const getAverageHistoricalData = async (facility) => {
 
             } else {
               // Check if a specific time has been added to the mappings
-              if (!(time in mappingSum[dayForData])) {
-                mappingSum[dayForData][time] = {
-                  cardioSum:
+              if (!(time in mappingAverage[dayForData])) {
+                mappingAverage[dayForData][time] = {
+                  cardioAverage:
                     (occupancy.cardio == -1 ? 0 : occupancy.cardio),
-                  weightSum:
+                  weightAverage:
                     (occupancy.weights == -1 ? 0 : occupancy.weights)
                 }
                 mappingCount[dayForData][time] = { cardioCount: 1, weightCount: 1 }
               } else {
                 // The current day and time already exist, adjust values in mappings.
-                mappingSum[dayForData][time]['cardioSum'] += (occupancy.cardio == -1 ? 0 : occupancy.cardio)
-                mappingSum[dayForData][time]['weightSum'] += (occupancy.weights == -1 ? 0 : occupancy.weights)
+                mappingAverage[dayForData][time]['cardioAverage'] =
+                  ((occupancy.cardio == -1 ? 0 : occupancy.cardio)
+                    + mappingAverage[dayForData][time]['cardioAverage']
+                    * mappingCount[dayForData][time]['cardioCount'])
+                  / (mappingCount[dayForData][time]['cardioCount'] + 1)
+
+                mappingAverage[dayForData][time]['weightAverage'] =
+                  ((occupancy.cardio == -1 ? 0 : occupancy.cardio)
+                    + mappingAverage[dayForData][time]['weightAverage']
+                    * mappingCount[dayForData][time]['weightCount'])
+                  / (mappingCount[dayForData][time]['weightCount'] + 1)
+
                 mappingCount[dayForData][time]['cardioCount'] += 1
                 mappingCount[dayForData][time]['weightCount'] += 1
               }
             }
           })
         })
-        resolve({ mappingSum: mappingSum, mappingCount: mappingCount })
+        resolve({ mappingSum: mappingAverage, mappingCount: mappingCount })
       })
       .catch(err => reject(err))
   })
