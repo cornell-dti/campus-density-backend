@@ -69,6 +69,8 @@ export default function routes(redis?: Redis, credentials?) {
     '/testGymQuery',
     async (req, res) => {
       getAverageHistoricalData('noyes')
+        .then(result => res.send(result))
+        .catch(err => console.log(err))
     }
   )
 
