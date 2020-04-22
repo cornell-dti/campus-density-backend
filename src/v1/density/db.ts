@@ -1,9 +1,19 @@
-import {ID_MAP,UNITNAME_MAP} from '../mapping';
-import {DBQuery,DB} from '../db';
+import { ID_MAP, UNITNAME_MAP, GYM_DISPLAY_MAP } from '../mapping';
+import { DBQuery, DB } from '../db';
 import * as Util from '../util';
-import {DensityDocument} from './models/density';
-import {firebaseDB} from '../auth';
-import {print} from 'util';
+import { DensityDocument } from './models/density';
+import { firebaseDB } from '../auth';
+import { print } from 'util';
+
+const DAYS = {
+    'Monday': 'M',
+    'Tuesday': 'T',
+    'Wednesday': 'W',
+    'Thursday': 'R',
+    'Friday': 'F',
+    'Saturday': 'S',
+    'Sunday': 'Su'
+}
 
 export class DensityDB extends DB {
     /* eslint-disable no-useless-constructor */
@@ -12,7 +22,7 @@ export class DensityDB extends DB {
     }
     /* eslint-enable */
 
-    async howDense(facilityId ? : string): Promise < DBQuery < string, DensityDocument > [] > {
+    async howDense(facilityId?: string): Promise<DBQuery<string, DensityDocument>[]> {
         const {
             datastore
         } = this;
@@ -45,27 +55,27 @@ export class DensityDB extends DB {
     }
 
     async getAllGymsJSONArray() {
-      let jsonArr = []
-      await firebaseDB.collection('gymdata').get().then(async gymsSnapshot => {
-        for (var doc of gymsSnapshot.docs) {
-            let facId = doc.id
-            const gymCountCollection = firebaseDB.collection('gymdata').doc(facId).collection('counts')
-            // eslint-disable-next-line no-await-in-loop
-            await gymCountCollection.orderBy('time', 'desc').limit(1).get().then(gymCountSnapshot => {
-                let facilityObj = {}
-                facilityObj['cardio'] = gymCountSnapshot.docs[0].get('cardio')
-                facilityObj['weights'] = gymCountSnapshot.docs[0].get('weights')
-                facilityObj['id'] = facId
-                jsonArr.push(facilityObj)
-            })
-        }
-    }).catch(err => {
-        console.log(err)
-    })
-      return jsonArr
+        let jsonArr = []
+        await firebaseDB.collection('gymdata').get().then(async gymsSnapshot => {
+            for (var doc of gymsSnapshot.docs) {
+                let facId = doc.id
+                const gymCountCollection = firebaseDB.collection('gymdata').doc(facId).collection('counts')
+                // eslint-disable-next-line no-await-in-loop
+                await gymCountCollection.orderBy('time', 'desc').limit(1).get().then(gymCountSnapshot => {
+                    let facilityObj = {}
+                    facilityObj['cardio'] = gymCountSnapshot.docs[0].get('cardio')
+                    facilityObj['weights'] = gymCountSnapshot.docs[0].get('weights')
+                    facilityObj['id'] = facId
+                    jsonArr.push(facilityObj)
+                })
+            }
+        }).catch(err => {
+            console.log(err)
+        })
+        return jsonArr
     }
 
-    async gymHowDense(facilityId ? : string) {
+    async gymHowDense(facilityId?: string) {
         let json = {}
         if (facilityId) {
             const gymCountCollection = firebaseDB.collection('gymdata').doc(facilityId).collection('counts')
@@ -80,8 +90,11 @@ export class DensityDB extends DB {
         return this.getAllGymsJSONArray()
     }
 
-    async gymHistoricalAverage(facilityId ? : string, day? : string) {
+    async gymHistoricalAverage(facilityId?: string, day?: string) {
         let json = {}
+        if (!facilityId || !(facilityId in GYM_DISPLAY_MAP)) throw new Error('invalid facility id')
+        if (!day || !(day in DAYS)) throw new Error('invalid day provided')
+
         const gymHistoryDocument = firebaseDB.collection('gyms').doc(facilityId).collection('history').doc(day);
         await gymHistoryDocument.get().then(snapshot => {
             json = snapshot.data()
