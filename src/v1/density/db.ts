@@ -79,4 +79,8 @@ export class DensityDB extends DB {
         }
         return this.getAllGymsJSONArray()
     }
+
+    async gymHistoricalAverage(facilityId ? : string, date ? : Date) {
+        
+    }
 }

@@ -66,6 +66,21 @@ export default function routes(redis?: Redis, credentials?) {
   );
 
   router.get(
+    '/gymHistoricalAverage',
+    asyncify(async (req, res) => {
+      try {
+        const queryResult = await (req.query.id && req.query.date ? 
+          db.gymHistoricalAverage(req.query.id, req.query.date) : db.gymHistoricalAverage());
+        const data = JSON.stringify(queryResult)
+        res.status(200).send(data);
+      } catch (err) {
+        console.log(err)
+        res.status(400).send(err);
+      }
+    })
+  );
+
+  router.get(
     '/testGymQuery',
     async (req, res) => {
       getAverageHistoricalData('noyes')
