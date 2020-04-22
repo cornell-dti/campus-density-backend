@@ -84,7 +84,7 @@ export class DensityDB extends DB {
         let json = {}
         const gymHistoryDocument = firebaseDB.collection('gyms').doc(facilityId).collection('history').doc(day);
         await gymHistoryDocument.get().then(snapshot => {
-            console.log(snapshot)
+            json = snapshot.data()
         });
         return json
     }
