@@ -65,7 +65,7 @@ export const getAverageHistoricalData = async (facility) => {
 
 
                 mappingAverage[dayForData][time]['weightAverage'] =
-                  ((occupancy.cardio == -1 ? 0 : occupancy.cardio)
+                  ((occupancy.cardio == -1 ? 0 : occupancy.weights)
                     + mappingAverage[dayForData][time]['weightAverage']
                     * mappingAverage[dayForData][time]['weightCount'])
                   / (mappingAverage[dayForData][time]['weightCount'] + 1)
