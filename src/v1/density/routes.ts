@@ -21,7 +21,7 @@ import { Redis } from 'ioredis';
 import asyncify from '../lib/asyncify';
 import { DensityDB } from './db';
 import { cache } from '../lib/cache';
-import { getAverageHistoricalData } from '../data/gymHistoricalAnalysis'
+import { getAverageHistoricalData, updateAverages } from '../data/gymHistoricalAnalysis'
 
 import Datastore = require('@google-cloud/datastore');
 
@@ -83,9 +83,10 @@ export default function routes(redis?: Redis, credentials?) {
   router.get(
     '/testGymQuery',
     async (req, res) => {
-      getAverageHistoricalData('noyes')
-        .then(result => res.send(result))
-        .catch(err => console.log(err))
+      // getAverageHistoricalData('noyes')
+      //   .then(result => res.send(result))
+      //   .catch(err => console.log(err))
+      updateAverages().then(() => res.send('success')).catch((err) => res.send(err))
     }
   )
 
