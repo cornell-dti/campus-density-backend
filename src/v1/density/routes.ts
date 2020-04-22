@@ -69,8 +69,7 @@ export default function routes(redis?: Redis, credentials?) {
     '/gymHistoricalAverage',
     asyncify(async (req, res) => {
       try {
-        const queryResult = await (req.query.id && req.query.date ? 
-          db.gymHistoricalAverage(req.query.id, req.query.date) : db.gymHistoricalAverage());
+        const queryResult = await (db.gymHistoricalAverage(req.query.id, req.query.day));
         const data = JSON.stringify(queryResult)
         res.status(200).send(data);
       } catch (err) {

@@ -80,7 +80,12 @@ export class DensityDB extends DB {
         return this.getAllGymsJSONArray()
     }
 
-    async gymHistoricalAverage(facilityId ? : string, date ? : Date) {
-        
+    async gymHistoricalAverage(facilityId ? : string, day? : string) {
+        let json = {}
+        const gymHistoryDocument = firebaseDB.collection('gyms').doc(facilityId).collection('history').doc(day);
+        await gymHistoryDocument.get().then(snapshot => {
+            console.log(snapshot)
+        });
+        return json
     }
 }
