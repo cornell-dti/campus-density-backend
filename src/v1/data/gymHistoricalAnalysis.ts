@@ -1,4 +1,5 @@
 import { firebaseDB } from '../auth'
+import { database } from 'firebase-admin'
 
 /**
  * This function computes the historical average of the weight and cardio occupancies
@@ -13,7 +14,7 @@ import { firebaseDB } from '../auth'
  * @param facility The facility id of the facility we are computing the historical
  * average of.
  */
-export const getAverageHistoricalData = async (facility) => {
+export const getAverageSpreadsheetHistoricalData = async (facility) => {
   return new Promise(async (resolve, reject) => {
     let mappingAverage = {} // {Monday: 11:30 AM: {cardoSum: 300, weightSum: 400}}
     await firebaseDB.collection('gymHistory')
@@ -84,9 +85,9 @@ export const getAverageHistoricalData = async (facility) => {
 }
 
 
-export const updateAverages = () => {
+export const updateSpreadsheetAverages = () => {
   return new Promise((resolve, reject) => {
-    getAverageHistoricalData('noyes')
+    getAverageSpreadsheetHistoricalData('noyes')
       .then(async results => {
 
         let averageDocuments = await firebaseDB
@@ -99,15 +100,127 @@ export const updateAverages = () => {
         })
 
         resolve()
-        // averageDocuments.get()
-        //   .then(querySnapshot => {
-        //     querySnapshot.docs.forEach(doc => {
-        //       doc.ref.set(results).catch(err => reject(err))
-        //     })
-        //     resolve()
-        //   })
-        //  .catch(err => reject(err))
       })
       .catch(err => reject(err))
+  })
+}
+
+export const updateLiveAverages = (gymID, day, data) => {
+  // My idea of data: For a specific time, rounded to the nearest 15/45{ cardio: 100, weight: 100 }
+  // The count attribute must be a live data count, not the average count
+
+  return new Promise(async (resolve, reject) => {
+
+    // get the live averages that are just calculated with the live data
+    let doc = await firebaseDB.collection('gyms')
+      .doc(gymID)
+      .collection('history')
+      .doc(day)
+      .get()
+
+    // get the JSON contents of both the results.
+    let docData = doc.data()
+    if (!docData) reject('Could not fetch live averages')
+
+    // let spreadsheetData = spreadsheetDoc.data()
+    // if (!spreadsheetData) reject('Could not fetch spreadsheet averages')
+
+    // check if there is a time doc for this time
+    if (docData[data.time]) {
+
+      // compute the running live average. Technically we don't need to compute the live average?
+      const newLiveCardioAvg =
+        (data.cardio + docData[data.time].cardioLiveAverage * docData[data.time].cardioLiveCount)
+        / (docData[data.time].cardioLiveCount + 1)
+
+      // compute new live count
+      const newLiveCardioCount = docData[data.time].cardioLiveCount + 1
+
+      // compute new live averages (this average doesn't include the spreadsheet averages!)
+      const newLiveWeightAvg =
+        (data.weights + docData[data.time].weightLiveAverage * docData[data.time].weightLiveCount)
+        / (docData[data.time].weightLiveCount + 1)
+
+      const newLiveWeightCount = docData[data.time].weightLiveCount + 1
+
+      docData[data.time].cardioLiveAverage = newLiveCardioAvg
+      docData[data.time].cardioLiveCount = newLiveCardioCount
+      docData[data.time].weightLiveAverage = newLiveWeightAvg
+      docData[data.time].weightLiveCount = newLiveWeightCount
+    } else {
+      docData[data.time] = {}
+      docData[data.time].cardioLiveAverage = data.cardio
+      docData[data.time].cardioLiveCount = 1
+      docData[data.time].weightLiveAverage = data.weights
+      docData[data.time].weightLiveCount = 1
+    }
+
+    await firebaseDB
+      .collection('gyms')
+      .doc(gymID)
+      .collection('history')
+      .doc(day)
+      .set(docData)
+      .catch(err => reject(err))
+
+    resolve()
+
+  })
+}
+
+export const getLiveAverages = (gymID, day) => {
+  return new Promise(async (resolve, reject) => {
+    // get the live averages that are just calculated with the live data
+    let doc = await firebaseDB.collection('gyms')
+      .doc(gymID)
+      .collection('history')
+      .doc(day)
+      .get()
+
+    // get the spreadsheet averages stored in gymSpreadsheets
+    let spreadsheetDoc = await firebaseDB.collection('gymSpreadsheets')
+      .doc(gymID)
+      .collection('history')
+      .doc(day)
+      .get()
+
+    // get the JSON contents of both the results.
+    let docData = doc.data()
+    if (!docData) reject('Could not fetch live averages')
+
+    let spreadsheetData = spreadsheetDoc.data()
+    if (!spreadsheetData) reject('Could not fetch spreadsheet averages')
+
+    let res = []
+    console.log(spreadsheetData)
+    Object.keys(spreadsheetData).forEach(time => {
+
+      // retrieve cardio/weight data from the live averages JSON, and deal
+      // with the case where there is no data for this time by setting it to 0
+      const cardioLiveAverage = (docData[time] || 0).cardioLiveAverage || 0
+      const cardioLiveCount = (docData[time] || 0).cardioLiveCount || 0
+      const weightLiveAverage = (docData[time] || 0).weightLiveAverage || 0
+      const weightLiveCount = (docData[time] || 0).weightLiveCount || 0
+
+      // compute new aggregate averages by averaging the live and spreadsheet averages
+      const newAggregateCardioAvg =
+        (cardioLiveAverage * cardioLiveCount +
+          spreadsheetData[time].cardioAverage * spreadsheetData[time].cardioCount)
+        / (cardioLiveCount + spreadsheetData[time].cardioCount)
+
+      const newAggregateWeightAvg =
+        (weightLiveAverage * weightLiveCount +
+          spreadsheetData[time].weightsAverage * spreadsheetData[time].weightsCount)
+        / (weightLiveCount + spreadsheetData[time].weightsCount)
+
+      const data = {
+        time: time,
+        cardioAverage: newAggregateCardioAvg,
+        weightAverage: newAggregateWeightAvg
+      }
+
+      res.push(data)
+    })
+    resolve(res)
   })
 }
