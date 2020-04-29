@@ -283,6 +283,7 @@ export const updateLiveAveragesTrans = (gymID, day, data) => {
  * in spreadsheet averages.
  * @todo modify function to fill in the remaining times that are in live averages 
  * but not in spreadhseet averages. 
+ * @todo update w examples
  * 
  * @param gymID A valid gym facility identifier, as used on Firebase.
  * @param day The string representation of the day (Monday, Tuesday, etc. ) 
