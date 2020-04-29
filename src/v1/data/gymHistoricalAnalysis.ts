@@ -85,7 +85,13 @@ export const getAverageSpreadsheetHistoricalData = async (facility) => {
   })
 }
 
-
+/**
+ * This method aggregates the spreadsheet averages in the Firebase collection
+ * gyms |> gym_name |> history. 
+ * 
+ * NOTE: This method is just kept until Changyuan's script can completely handle 
+ * spreadsheet stuff. Don't use this. 
+ */
 export const updateSpreadsheetAverages = () => {
   return new Promise((resolve, reject) => {
     getAverageSpreadsheetHistoricalData('noyes')
@@ -106,9 +112,26 @@ export const updateSpreadsheetAverages = () => {
   })
 }
 
+/**
+ * This function will update the live averages for the Firebase document corresponding
+ * to the path `gyms/[gymID]/history/[day]`. It will create a new field for the 
+ * this document's data path if `[data.time]` isn't already a field (which means
+ * the time for which we're updating the live averages doesn't exist on the database,
+ * and we need to create a new field for this time). If the time already exists as
+ * a field for this document, then the existing averages are updated using `[data.weights]` 
+ * and `[data.cardio]`.
+ * 
+ * @param gymID A valid gym facility identifier, as used on Firebase.
+ * 
+ * @param day The string representation of the day (Monday, Tuesday, etc. ) the average is being 
+ * updated for
+ * 
+ * @param data An Object containing information about the time, and the new cardio and weight
+ * data. 
+ * @requires data.time is a string representation of 12-hour regular time, rounded to the nearest
+ * quarter. Examples: 1:15pm, 11:45am, 12:15pm
+ */
 export const updateLiveAverages = (gymID, day, data) => {
-  // My idea of data: { time: "10:45AM", cardio: 100, weight: 100 }
-  // The count attribute must be a live data count, not the average count
 
   return new Promise(async (resolve, reject) => {
 
@@ -156,6 +179,7 @@ export const updateLiveAverages = (gymID, day, data) => {
       docData[data.time].weightLiveCount = 1
     }
 
+    // push everything back to firebase.
     await firebaseDB
       .collection('gyms')
       .doc(gymID)
@@ -166,6 +190,87 @@ export const updateLiveAverages = (gymID, day, data) => {
 
     resolve()
 
+  })
+}
+
+// don't use this right now, under testing with transactions/updates instead of 
+// explicit gets/sets for better efficiency.
+export const updateLiveAveragesTrans = (gymID, day, data) => {
+  let liveDocRef = firebaseDB.collection('gyms')
+    .doc(gymID)
+    .collection('history')
+    .doc(day)
+
+  return new Promise((resolve, reject) => {
+    firebaseDB.runTransaction(t => {
+      return t
+        .get(liveDocRef) // get the document at given path
+        .then(async doc => {
+
+          // check if the day for this document exists
+          if (doc.exists) {
+            let docData = doc.data()
+            // check if there is a time doc for this time
+            if (docData[data.time]) {
+
+              // compute the running live average. Technically we don't need to compute the live average?
+              const newLiveCardioAvg =
+                (data.cardio + docData[data.time].cardioLiveAverage * docData[data.time].cardioLiveCount)
+                / (docData[data.time].cardioLiveCount + 1)
+
+              // compute new live count
+              const newLiveCardioCount = docData[data.time].cardioLiveCount + 1
+
+              // compute new live averages (this average doesn't include the spreadsheet averages!)
+              const newLiveWeightAvg =
+                (data.weights + docData[data.time].weightLiveAverage * docData[data.time].weightLiveCount)
+                / (docData[data.time].weightLiveCount + 1)
+
+              // compute new live weight count
+              const newLiveWeightCount = docData[data.time].weightLiveCount + 1
+
+              // initialize new mapping for updated data
+              const updatedData = {}
+
+              // populate with new data
+              updatedData[data.time] =
+              {
+                cardioLiveAverage: newLiveCardioAvg,
+                cardioLiveCount: newLiveCardioCount,
+                weightLiveAverage: newLiveWeightAvg,
+                weightLiveCount: newLiveWeightCount
+              }
+
+              // carry out firebase update
+              await doc.ref.update(updatedData)
+                .catch(err => reject(err))
+
+            } else {
+              // handle case where this specific time does not exist in firebase already
+
+              docData[data.time] = {}
+              docData[data.time].cardioLiveAverage = data.cardio
+              docData[data.time].cardioLiveCount = 1
+              docData[data.time].weightLiveAverage = data.weights
+              docData[data.time].weightLiveCount = 1
+
+              await doc.ref.set(docData)
+                .catch(err => reject(err))
+            }
+          } else {
+            const newData = {
+              cardioLiveAverage: data.cardio,
+              cardioLiveCount: 1,
+              weightLiveAverage: data.weights,
+              weightLiveCount: 1
+            }
+
+            await t.create(liveDocRef, newData);
+          }
+        })
+        .then(() => resolve())
+        .catch(err => reject(err))
+    })
   })
 }
 
