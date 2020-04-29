@@ -86,7 +86,7 @@ export default function routes(redis?: Redis, credentials?) {
    *    gymID: 'noyes',
    *    day: 'Monday',
    *    data: {
-   *       time: 11:15AM,
+   *       time: '11:15AM',
    *       cardio: 13,
    *       weights: 19
    *    }
