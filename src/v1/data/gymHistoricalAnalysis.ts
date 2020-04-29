@@ -274,6 +274,20 @@ export const updateLiveAveragesTrans = (gymID, day, data) => {
   })
 }
 
+/**
+ * This function generates the average historical data from averages stored in
+ * 2 collections - gymSpreadsheets (for spreadhseet averages) and gyms (for live
+ * averages).  
+ * @returns Given a valid `gymID` and `day`, this will return a JSON of the 
+ * weighted average of spreadsheet averages and live averages, for every time 
+ * in spreadsheet averages.
+ * @todo modify function to fill in the remaining times that are in live averages 
+ * but not in spreadhseet averages. 
+ * 
+ * @param gymID A valid gym facility identifier, as used on Firebase.
+ * @param day The string representation of the day (Monday, Tuesday, etc. ) 
+ * the average is being updated for
+ */
 export const getLiveAverages = (gymID, day) => {
   return new Promise(async (resolve, reject) => {
     // get the live averages that are just calculated with the live data
