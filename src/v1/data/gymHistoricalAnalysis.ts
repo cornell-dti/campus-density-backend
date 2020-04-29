@@ -16,7 +16,8 @@ import { database } from 'firebase-admin'
  */
 export const getAverageSpreadsheetHistoricalData = async (facility) => {
   return new Promise(async (resolve, reject) => {
-    let mappingAverage = {} // {Monday: 11:30 AM: {cardoSum: 300, weightSum: 400}}
+    let mappingAverage = {} // {Monday: 11:20AM: {cardoSum: 300, weightSum: 400}}
+
     await firebaseDB.collection('gymHistory')
       .doc(facility) //get facility
       .collection('history') // go to the 'history' collection of that facility
@@ -106,7 +107,7 @@ export const updateSpreadsheetAverages = () => {
 }
 
 export const updateLiveAverages = (gymID, day, data) => {
-  // My idea of data: For a specific time, rounded to the nearest 15/45{ cardio: 100, weight: 100 }
+  // My idea of data: { time: "10:45AM", cardio: 100, weight: 100 }
   // The count attribute must be a live data count, not the average count
 
   return new Promise(async (resolve, reject) => {

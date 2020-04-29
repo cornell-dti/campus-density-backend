@@ -80,12 +80,24 @@ export default function routes(redis?: Redis, credentials?) {
     })
   );
 
+  /**
+   * Sample req.body: 
+   * {
+   *    gymID: 'noyes',
+   *    day: 'Monday',
+   *    data: {
+   *       time: 11:15AM,
+   *       cardio: 13,
+   *       weights: 19
+   *    }
+   * }
+   */
   router.post(
     '/update-live-averages',
     async (req, res) => {
-      updateLiveAverages(req.query.gymID, req.query.day, req.body.data)
-        .then(() => res.send({ success: true }))
-        .catch(err => res.send(err))
+      updateLiveAverages(req.body.gymID, req.body.day, req.body.data)
+        .then(() => res.status(200).send({ success: true }))
+        .catch(err => res.status(400).send(err.message))
     }
   )
 
@@ -93,8 +105,8 @@ export default function routes(redis?: Redis, credentials?) {
     '/get-gym-averages',
     async (req, res) => {
       getLiveAverages(req.query.gymID, req.query.day)
-        .then(result => res.json(result))
-        .catch(err => res.send(err.message))
+        .then(result => res.status(200).json(result))
+        .catch(err => res.status(400).send(err.message))
     }
   )
 
