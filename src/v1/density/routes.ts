@@ -81,22 +81,30 @@ export default function routes(redis?: Redis, credentials?) {
     })
   );
 
+  /**
+   * Sample req.body: 
+   * {
+   *    time: '11:15AM',
+   *    cardio: 13,
+   *    weights: 19
+   * }
+   */
   router.post(
     '/update-live-averages',
     asyncify(async (req, res) => {
       updateLiveAverages(req.query.id, req.query.day, req.body)
-        .then(() => res.send({ success: true }))
-        .catch(err => res.send(err))
+        .then(() => res.status(200).send({ success: true }))
+        .catch(err => res.status(400).send(err.message))
     })
   )
 
   router.get(
     '/get-gym-averages',
-    async (req, res) => {
+    asyncify(async (req, res) => {
       getHistoricalAverages(req.query.id, req.query.day)
-        .then(result => res.json(result))
-        .catch(err => res.send(err.message))
-    }
+        .then(result => res.status(200).json(result))
+        .catch(err => res.status(400).send(err.message))
+    })
   )
 
   return router;

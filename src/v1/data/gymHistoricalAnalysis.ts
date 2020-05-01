@@ -17,7 +17,8 @@ import { print } from 'util'
  */
 export const getAverageSpreadsheetHistoricalData = async (facility) => {
   return new Promise(async (resolve, reject) => {
-    let mappingAverage = {} // {Monday: 11:30 AM: {cardoSum: 300, weightSum: 400}}
+    let mappingAverage = {} // {Monday: 11:20AM: {cardoSum: 300, weightSum: 400}}
+
     await firebaseDB.collection('gymHistory')
       .doc(facility) //get facility
       .collection('history') // go to the 'history' collection of that facility
@@ -85,7 +86,13 @@ export const getAverageSpreadsheetHistoricalData = async (facility) => {
   })
 }
 
-
+/**
+ * This method aggregates the spreadsheet averages in the Firebase collection
+ * gyms |> gym_name |> history. 
+ * 
+ * NOTE: This method is just kept until Changyuan's script can completely handle 
+ * spreadsheet stuff. Don't use this. 
+ */
 export const updateSpreadsheetAverages = () => {
   return new Promise((resolve, reject) => {
     getAverageSpreadsheetHistoricalData('noyes')
@@ -106,9 +113,26 @@ export const updateSpreadsheetAverages = () => {
   })
 }
 
+/**
+ * This function will update the live averages for the Firebase document corresponding
+ * to the path `gyms/[gymID]/history/[day]`. It will create a new field for the 
+ * this document's data path if `[data.time]` isn't already a field (which means
+ * the time for which we're updating the live averages doesn't exist on the database,
+ * and we need to create a new field for this time). If the time already exists as
+ * a field for this document, then the existing averages are updated using `[data.weights]` 
+ * and `[data.cardio]`.
+ * 
+ * @param gymID A valid gym facility identifier, as used on Firebase.
+ * 
+ * @param day The string representation of the day (Monday, Tuesday, etc. ) the average is being 
+ * updated for
+ * 
+ * @param data An Object containing information about the time, and the new cardio and weight
+ * data. 
+ * @requires data.time is a string representation of 12-hour regular time, rounded to the nearest
+ * quarter. Examples: 1:15pm, 11:45am, 12:15pm
+ */
 export const updateLiveAverages = (gymID, day, data) => {
-  // My idea of data: For a specific time, rounded to the nearest 15/45{ cardio: 100, weight: 100 }
-  // The count attribute must be a live data count, not the average count
 
   return new Promise(async (resolve, reject) => {
 
@@ -156,6 +180,7 @@ export const updateLiveAverages = (gymID, day, data) => {
       docData[data.time].weightLiveCount = 1
     }
 
+    // push everything back to firebase.
     await firebaseDB
       .collection('gyms')
       .doc(gymID)
@@ -169,6 +194,12 @@ export const updateLiveAverages = (gymID, day, data) => {
   }).catch(err => console.log(err))
 }
 
+/**
+ * This function gets the historical averages of a specified gym on a specified day. This historical average
+ * is calculated by adding up the spreadsheet historical averages and the live historical averages.
+ * @param gymID id of the gym to get historical averages of
+ * @param day day to fetch historical averages for
+ */
 export const getHistoricalAverages = (gymID, day) => {
   return new Promise(async (resolve, reject) => {
     // get the live averages that are just calculated with the live data
