@@ -1,5 +1,6 @@
 import { firebaseDB } from '../auth'
 import { database } from 'firebase-admin'
+import { print } from 'util'
 
 /**
  * This function computes the historical average of the weight and cardio occupancies
@@ -165,10 +166,10 @@ export const updateLiveAverages = (gymID, day, data) => {
 
     resolve()
 
-  })
+  }).catch(err => console.log(err))
 }
 
-export const getLiveAverages = (gymID, day) => {
+export const getHistoricalAverages = (gymID, day) => {
   return new Promise(async (resolve, reject) => {
     // get the live averages that are just calculated with the live data
     let doc = await firebaseDB.collection('gyms')
@@ -222,5 +223,5 @@ export const getLiveAverages = (gymID, day) => {
       res.push(data)
     })
     resolve(res)
-  })
+  }).catch(err => console.log(err))
 }
