@@ -1,5 +1,4 @@
 import { firebaseDB } from '../auth'
-import { database } from 'firebase-admin'
 
 /**
  * This function computes the historical average of the weight and cardio occupancies
@@ -16,26 +15,26 @@ import { database } from 'firebase-admin'
  */
 export const getAverageSpreadsheetHistoricalData = async (facility) => {
   return new Promise(async (resolve, reject) => {
-    let mappingAverage = {} // {Monday: 11:20AM: {cardoSum: 300, weightSum: 400}}
+    const mappingAverage = {} // {Monday: 11:20AM: {cardoSum: 300, weightSum: 400}}
 
     await firebaseDB.collection('gymHistory')
-      .doc(facility) //get facility
+      .doc(facility) // get facility
       .collection('history') // go to the 'history' collection of that facility
       .get() // get all documents
       .then(querySnapshot => {
         querySnapshot.docs.forEach(doc => {
-          let docDataContents = doc.data().data //This contains the mapping from time to occupancies
-          let dayForData = doc.data().day
+          const docDataContents = doc.data().data // This contains the mapping from time to occupancies
+          const dayForData = doc.data().day
           Object.keys(docDataContents).forEach(time => { // The keys of the JSON are the times for a specific day
-            let occupancy = docDataContents[time]
+            const occupancy = docDataContents[time]
             if (!(dayForData in mappingAverage)) { //Create the appropriate mapping for the day if it doesn't exist
               // Throughout this function, whenever we encounter a -1 (implying there's no one there), we simply substitute with a 0. 
               mappingAverage[dayForData] = {}
               mappingAverage[dayForData][time] = {
                 cardioAverage:
-                  (occupancy.cardio == -1 ? 0 : occupancy.cardio),
+                  (occupancy.cardio === -1 ? 0 : occupancy.cardio),
                 weightAverage:
-                  (occupancy.weights == -1 ? 0 : occupancy.weights),
+                  (occupancy.weights === -1 ? 0 : occupancy.weights),
                 cardioCount: 1,
                 weightCount: 1
               }
@@ -47,9 +46,9 @@ export const getAverageSpreadsheetHistoricalData = async (facility) => {
               if (!(time in mappingAverage[dayForData])) {
                 mappingAverage[dayForData][time] = {
                   cardioAverage:
-                    (occupancy.cardio == -1 ? 0 : occupancy.cardio),
+                    (occupancy.cardio === -1 ? 0 : occupancy.cardio),
                   weightAverage:
-                    (occupancy.weights == -1 ? 0 : occupancy.weights),
+                    (occupancy.weights === -1 ? 0 : occupancy.weights),
                   cardioCount: 1,
                   weightCount: 1
                 }
@@ -59,22 +58,22 @@ export const getAverageSpreadsheetHistoricalData = async (facility) => {
 
                 // Compute the new average based on the current acccumulation by (newVal + oldAverage * oldCount)/(oldCount + 1
 
-                mappingAverage[dayForData][time]['cardioAverage'] =
+                mappingAverage[dayForData][time].cardioAverage =
                   ((occupancy.cardio == -1 ? 0 : occupancy.cardio)
-                    + mappingAverage[dayForData][time]['cardioAverage']
-                    * mappingAverage[dayForData][time]['cardioCount'])
-                  / (mappingAverage[dayForData][time]['cardioCount'] + 1)
+                    + mappingAverage[dayForData][time].cardioAverage
+                    * mappingAverage[dayForData][time].cardioCount)
+                  / (mappingAverage[dayForData][time].cardioCount + 1)
 
 
-                mappingAverage[dayForData][time]['weightAverage'] =
+                mappingAverage[dayForData][time].weightAverage =
                   ((occupancy.cardio == -1 ? 0 : occupancy.weights)
-                    + mappingAverage[dayForData][time]['weightAverage']
-                    * mappingAverage[dayForData][time]['weightCount'])
-                  / (mappingAverage[dayForData][time]['weightCount'] + 1)
+                    + mappingAverage[dayForData][time].weightAverage
+                    * mappingAverage[dayForData][time].weightCount)
+                  / (mappingAverage[dayForData][time].weightCount + 1)
 
                 // Update mapping counts. 
-                mappingAverage[dayForData][time]['cardioCount'] += 1
-                mappingAverage[dayForData][time]['weightCount'] += 1
+                mappingAverage[dayForData][time].cardioCount += 1
+                mappingAverage[dayForData][time].weightCount += 1
               }
             }
           })
@@ -97,7 +96,7 @@ export const updateSpreadsheetAverages = () => {
     getAverageSpreadsheetHistoricalData('noyes')
       .then(async results => {
 
-        let averageDocuments = await firebaseDB
+        const averageDocuments = await firebaseDB
           .collection('gyms')
           .doc('noyes')
           .collection('history')
@@ -136,14 +135,14 @@ export const updateLiveAverages = (gymID, day, data) => {
   return new Promise(async (resolve, reject) => {
 
     // get the live averages that are just calculated with the live data
-    let doc = await firebaseDB.collection('gyms')
+    const doc = await firebaseDB.collection('gyms')
       .doc(gymID)
       .collection('history')
       .doc(day)
       .get()
 
     // get the JSON contents of both the results.
-    let docData = doc.data()
+    const docData = doc.data()
     if (!docData) reject('Could not fetch live averages')
 
     // let spreadsheetData = spreadsheetDoc.data()
@@ -196,7 +195,7 @@ export const updateLiveAverages = (gymID, day, data) => {
 // don't use this right now, under testing with transactions/updates instead of 
 // explicit gets/sets for better efficiency.
 export const updateLiveAveragesTrans = (gymID, day, data) => {
-  let liveDocRef = firebaseDB.collection('gyms')
+  const liveDocRef = firebaseDB.collection('gyms')
     .doc(gymID)
     .collection('history')
     .doc(day)
@@ -209,7 +208,7 @@ export const updateLiveAveragesTrans = (gymID, day, data) => {
 
           // check if the day for this document exists
           if (doc.exists) {
-            let docData = doc.data()
+            const docData = doc.data()
             // check if there is a time doc for this time
             if (docData[data.time]) {
 
@@ -292,27 +291,27 @@ export const updateLiveAveragesTrans = (gymID, day, data) => {
 export const getLiveAverages = (gymID, day) => {
   return new Promise(async (resolve, reject) => {
     // get the live averages that are just calculated with the live data
-    let doc = await firebaseDB.collection('gyms')
+    const doc = await firebaseDB.collection('gyms')
       .doc(gymID)
       .collection('history')
       .doc(day)
       .get()
 
     // get the spreadsheet averages stored in gymSpreadsheets
-    let spreadsheetDoc = await firebaseDB.collection('gymSpreadsheets')
+    const spreadsheetDoc = await firebaseDB.collection('gymSpreadsheets')
       .doc(gymID)
       .collection('history')
       .doc(day)
       .get()
 
     // get the JSON contents of both the results.
-    let docData = doc.data()
+    const docData = doc.data()
     if (!docData) reject('Could not fetch live averages')
 
-    let spreadsheetData = spreadsheetDoc.data()
+    const spreadsheetData = spreadsheetDoc.data()
     if (!spreadsheetData) reject('Could not fetch spreadsheet averages')
 
-    let res = []
+    const res = []
     console.log(spreadsheetData)
     Object.keys(spreadsheetData).forEach(time => {
 
