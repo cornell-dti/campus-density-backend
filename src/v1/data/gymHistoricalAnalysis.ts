@@ -1,4 +1,6 @@
 import { firebaseDB } from '../auth'
+import { database } from 'firebase-admin'
+import { print } from 'util'
 
 /**
  * This function computes the historical average of the weight and cardio occupancies
@@ -189,106 +191,16 @@ export const updateLiveAverages = (gymID, day, data) => {
 
     resolve()
 
-  })
-}
-
-// don't use this right now, under testing with transactions/updates instead of 
-// explicit gets/sets for better efficiency.
-export const updateLiveAveragesTrans = (gymID, day, data) => {
-  const liveDocRef = firebaseDB.collection('gyms')
-    .doc(gymID)
-    .collection('history')
-    .doc(day)
-
-  return new Promise((resolve, reject) => {
-    firebaseDB.runTransaction(t => {
-      return t
-        .get(liveDocRef) // get the document at given path
-        .then(async doc => {
-
-          // check if the day for this document exists
-          if (doc.exists) {
-            const docData = doc.data()
-            // check if there is a time doc for this time
-            if (docData[data.time]) {
-
-              // compute the running live average. Technically we don't need to compute the live average?
-              const newLiveCardioAvg =
-                (data.cardio + docData[data.time].cardioLiveAverage * docData[data.time].cardioLiveCount)
-                / (docData[data.time].cardioLiveCount + 1)
-
-              // compute new live count
-              const newLiveCardioCount = docData[data.time].cardioLiveCount + 1
-
-              // compute new live averages (this average doesn't include the spreadsheet averages!)
-              const newLiveWeightAvg =
-                (data.weights + docData[data.time].weightLiveAverage * docData[data.time].weightLiveCount)
-                / (docData[data.time].weightLiveCount + 1)
-
-              // compute new live weight count
-              const newLiveWeightCount = docData[data.time].weightLiveCount + 1
-
-              // initialize new mapping for updated data
-              const updatedData = {}
-
-              // populate with new data
-              updatedData[data.time] =
-              {
-                cardioLiveAverage: newLiveCardioAvg,
-                cardioLiveCount: newLiveCardioCount,
-                weightLiveAverage: newLiveWeightAvg,
-                weightLiveCount: newLiveWeightCount
-              }
-
-              // carry out firebase update
-              await doc.ref.update(updatedData)
-                .catch(err => reject(err))
-
-            } else {
-              // handle case where this specific time does not exist in firebase already
-
-              docData[data.time] = {}
-              docData[data.time].cardioLiveAverage = data.cardio
-              docData[data.time].cardioLiveCount = 1
-              docData[data.time].weightLiveAverage = data.weights
-              docData[data.time].weightLiveCount = 1
-
-              await doc.ref.set(docData)
-                .catch(err => reject(err))
-            }
-          } else {
-            const newData = {
-              cardioLiveAverage: data.cardio,
-              cardioLiveCount: 1,
-              weightLiveAverage: data.weights,
-              weightLiveCount: 1
-            }
-
-            await t.create(liveDocRef, newData);
-          }
-        })
-        .then(() => resolve())
-        .catch(err => reject(err))
-    })
-  })
+  }).catch(err => console.log(err))
 }
 
 /**
- * This function generates the average historical data from averages stored in
- * 2 collections - gymSpreadsheets (for spreadhseet averages) and gyms (for live
- * averages).  
- * @returns Given a valid `gymID` and `day`, this will return a JSON of the 
- * weighted average of spreadsheet averages and live averages, for every time 
- * in spreadsheet averages.
- * @todo modify function to fill in the remaining times that are in live averages 
- * but not in spreadhseet averages. 
- * @todo update w examples
- * 
- * @param gymID A valid gym facility identifier, as used on Firebase.
- * @param day The string representation of the day (Monday, Tuesday, etc. ) 
- * the average is being updated for
+ * This function gets the historical averages of a specified gym on a specified day. This historical average
+ * is calculated by adding up the spreadsheet historical averages and the live historical averages.
+ * @param gymID id of the gym to get historical averages of
+ * @param day day to fetch historical averages for
  */
-export const getLiveAverages = (gymID, day) => {
+export const getHistoricalAverages = (gymID, day) => {
   return new Promise(async (resolve, reject) => {
     // get the live averages that are just calculated with the live data
     const doc = await firebaseDB.collection('gyms')
@@ -342,5 +254,5 @@ export const getLiveAverages = (gymID, day) => {
       res.push(data)
     })
     resolve(res)
-  })
+  }).catch(err => console.log(err))
 }

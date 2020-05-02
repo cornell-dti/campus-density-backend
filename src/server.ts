@@ -9,6 +9,7 @@ import v2 from './v2/server';
 function use(app: express.Application, redis, credentials) {
   app.use('/v1', v1(redis, credentials));
   app.use('/v2', v2);
+  app.use(express.json())
 }
 
 function runServer(startRedis?: boolean): Promise<any[]> {

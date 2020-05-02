@@ -16,20 +16,21 @@
  */
 
 import * as express from 'express';
-
 import { Redis } from 'ioredis';
 import asyncify from '../lib/asyncify';
 import { DensityDB } from './db';
 import { cache } from '../lib/cache';
-import { getAverageSpreadsheetHistoricalData, updateLiveAverages, getLiveAverages } from '../data/gymHistoricalAnalysis'
+import { getAverageSpreadsheetHistoricalData, updateLiveAverages, getHistoricalAverages } from '../data/gymHistoricalAnalysis'
 
 import Datastore = require('@google-cloud/datastore');
+import bodyParser = require('body-parser');
 
 export default function routes(redis?: Redis, credentials?) {
   const datastore = new Datastore(credentials ? { credentials } : undefined);
   const db = new DensityDB(datastore);
 
   const router = express.Router();
+  router.use(bodyParser.json())
   const key = req => `/howDense?${req.query.id || ''}`.toLowerCase();
 
   router.get(
@@ -83,31 +84,27 @@ export default function routes(redis?: Redis, credentials?) {
   /**
    * Sample req.body: 
    * {
-   *    gymID: 'noyes',
-   *    day: 'Monday',
-   *    data: {
-   *       time: '11:15AM',
-   *       cardio: 13,
-   *       weights: 19
-   *    }
+   *    time: '11:15AM',
+   *    cardio: 13,
+   *    weights: 19
    * }
    */
   router.post(
     '/update-live-averages',
-    async (req, res) => {
-      updateLiveAverages(req.body.gymID, req.body.day, req.body.data)
+    asyncify(async (req, res) => {
+      updateLiveAverages(req.query.id, req.query.day, req.body)
         .then(() => res.status(200).send({ success: true }))
         .catch(err => res.status(400).send(err.message))
-    }
+    })
   )
 
   router.get(
     '/get-gym-averages',
-    async (req, res) => {
-      getLiveAverages(req.query.gymID, req.query.day)
+    asyncify(async (req, res) => {
+      getHistoricalAverages(req.query.id, req.query.day)
         .then(result => res.status(200).json(result))
         .catch(err => res.status(400).send(err.message))
-    }
+    })
   )
 
   return router;
