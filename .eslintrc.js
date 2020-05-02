@@ -30,6 +30,7 @@ module.exports = {
     'comma-dangle': ['warn', 'never'],
     'no-underscore-dangle': ['off'],
     'no-continue': ['off'],
+    'import/extensions': ['off'],
     'no-shadow': ['off'],
     'class-methods-use-this': ['off'],
     'import/export': ['off'],

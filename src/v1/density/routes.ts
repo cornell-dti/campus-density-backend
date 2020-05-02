@@ -92,9 +92,12 @@ export default function routes(redis?: Redis, credentials?) {
   router.post(
     '/updateLiveAverages',
     asyncify(async (req, res) => {
-      updateLiveAverages(req.query.id, req.query.day, req.body)
-        .then(() => res.status(200).send({ success: true }))
-        .catch(err => res.status(400).send(err.message))
+      try {
+        await updateLiveAverages(req.query.id, req.query.day, req.body)
+        res.status(200).send({ success: 'true' })
+      } catch (error) {
+        res.status(400).send({ success: false, error: error.message })
+      }
     })
   )
 

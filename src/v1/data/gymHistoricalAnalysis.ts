@@ -127,64 +127,58 @@ export const updateSpreadsheetAverages = () => {
  * quarter. Examples: 1:15pm, 11:45am, 12:15pm
  *
  */
-export const updateLiveAverages = (gymID, day, data) => {
+export const updateLiveAverages = async (gymID, day, data) => {
 
-  return new Promise(async (resolve, reject) => {
+  // get the live averages that are just calculated with the live data
+  const doc = await firebaseDB.collection('gyms')
+    .doc(gymID)
+    .collection('history')
+    .doc(day)
+    .get()
 
-    // get the live averages that are just calculated with the live data
-    const doc = await firebaseDB.collection('gyms')
-      .doc(gymID)
-      .collection('history')
-      .doc(day)
-      .get()
+  // get the JSON contents of both the results.
+  const docData = doc.data()
+  if (!docData) throw new Error('Could not fetch live averages')
 
-    // get the JSON contents of both the results.
-    const docData = doc.data()
-    if (!docData) reject(new Error('Could not fetch live averages'))
+  // check if there is a time doc for this time
+  if (docData[data.time]) {
 
-    // check if there is a time doc for this time
-    if (docData[data.time]) {
+    // compute the running live average. Technically we don't need to compute the live average?
+    const newLiveCardioAvg =
+      (data.cardio + docData[data.time].cardioLiveAverage * docData[data.time].cardioLiveCount)
+      / (docData[data.time].cardioLiveCount + 1)
 
-      // compute the running live average. Technically we don't need to compute the live average?
-      const newLiveCardioAvg =
-        (data.cardio + docData[data.time].cardioLiveAverage * docData[data.time].cardioLiveCount)
-        / (docData[data.time].cardioLiveCount + 1)
+    // compute new live count
+    const newLiveCardioCount = docData[data.time].cardioLiveCount + 1
 
-      // compute new live count
-      const newLiveCardioCount = docData[data.time].cardioLiveCount + 1
+    // compute new live averages (this average doesn't include the spreadsheet averages!)
+    const newLiveWeightAvg =
+      (data.weights + docData[data.time].weightLiveAverage * docData[data.time].weightLiveCount)
+      / (docData[data.time].weightLiveCount + 1)
 
-      // compute new live averages (this average doesn't include the spreadsheet averages!)
-      const newLiveWeightAvg =
-        (data.weights + docData[data.time].weightLiveAverage * docData[data.time].weightLiveCount)
-        / (docData[data.time].weightLiveCount + 1)
+    const newLiveWeightCount = docData[data.time].weightLiveCount + 1
 
-      const newLiveWeightCount = docData[data.time].weightLiveCount + 1
+    docData[data.time].cardioLiveAverage = newLiveCardioAvg
+    docData[data.time].cardioLiveCount = newLiveCardioCount
+    docData[data.time].weightLiveAverage = newLiveWeightAvg
+    docData[data.time].weightLiveCount = newLiveWeightCount
+  } else {
+    docData[data.time] = {}
+    docData[data.time].cardioLiveAverage = data.cardio
+    docData[data.time].cardioLiveCount = 1
+    docData[data.time].weightLiveAverage = data.weights
+    docData[data.time].weightLiveCount = 1
+  }
 
-      docData[data.time].cardioLiveAverage = newLiveCardioAvg
-      docData[data.time].cardioLiveCount = newLiveCardioCount
-      docData[data.time].weightLiveAverage = newLiveWeightAvg
-      docData[data.time].weightLiveCount = newLiveWeightCount
-    } else {
-      docData[data.time] = {}
-      docData[data.time].cardioLiveAverage = data.cardio
-      docData[data.time].cardioLiveCount = 1
-      docData[data.time].weightLiveAverage = data.weights
-      docData[data.time].weightLiveCount = 1
-    }
-
-    // push everything back to firebase.
-    // eslint-disable-next-line no-async-promise-executor
-    await firebaseDB
-      .collection('gyms')
-      .doc(gymID)
-      .collection('history')
-      .doc(day)
-      .set(docData)
-      .catch(err => reject(err))
-
-    resolve()
-
-  }).catch(err => console.log(err))
+  // push everything back to firebase.
+  // eslint-disable-next-line no-async-promise-executor
+  await firebaseDB
+    .collection('gyms')
+    .doc(gymID)
+    .collection('history')
+    .doc(day)
+    .set(docData)
+    .catch(err => { throw new Error(err) })
 }
 
 /**
