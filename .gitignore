@@ -5,7 +5,7 @@ conf/**
 *.yaml
 gcloud-config.json
 firebase.json
-
+private_key.json
 .vscode/**
 
 .env

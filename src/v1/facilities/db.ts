@@ -1,5 +1,6 @@
 import * as moment from 'moment-timezone'
-import { ID_MAP, DISPLAY_MAP } from '../mapping';
+import { firebaseDB } from '../auth';
+import { ID_MAP, DISPLAY_MAP, GYM_DISPLAY_MAP } from '../mapping';
 import { FacilityHourSet, FacilityInfo } from './models/info';
 import { CampusLocation } from '../models/campus';
 import { DBQuery, DB, DatabaseQueryNoParams } from '../db';
@@ -124,10 +125,35 @@ export class FacilityDB extends DB {
     }
   }
 
-  async facilityList(): /* eslint-disable-line class-methods-use-this */ Promise<
-    DatabaseQueryNoParams<FacilityMetadata>[]
-  > {
+  async facilityList(facilityListType):
+  /* eslint-disable-line class-methods-use-this */ Promise<
+    DatabaseQueryNoParams<FacilityMetadata>[]> {
+    return Object.keys(facilityListType).map(key =>
+      DB.query(
+        FacilityMetadata.assign({
+          displayName: facilityListType[key],
+          id: key
+        })
+      )
+    );
+  }
+
+  // Should I just go ahead and delete these then
+  async efacilityList(): /* eslint-disable-line class-methods-use-this */ Promise<
+    DatabaseQueryNoParams<FacilityMetadata>[]> {
     return Object.keys(DISPLAY_MAP).map(key =>
+      DB.query(
+        FacilityMetadata.assign({
+          displayName: DISPLAY_MAP[key],
+          id: key
+        })
+      )
+    );
+  }
+
+  async gymFacilityList(): Promise<
+    DatabaseQueryNoParams<FacilityMetadata>[]> {
+    return Object.keys(GYM_DISPLAY_MAP).map(key =>
       DB.query(
         FacilityMetadata.assign({
           displayName: DISPLAY_MAP[key],
@@ -176,5 +202,19 @@ export class FacilityDB extends DB {
     catch (err) {
       throw new Error(err.message);
     }
+  }
+
+  async gymFacilityHours(facilityId?: string, date?: string) {
+    if (facilityId) {
+      return (await firebaseDB.collection('gymdata').doc(facilityId).get()).data();
+    }
+    const data = []
+    const queryResult = await firebaseDB.collection('gymdata').get()
+    for (const doc of queryResult.docs) {
+      const docData = doc.data();
+      docData.id = doc.id
+      data.push(docData)
+    }
+    return data
   }
 }

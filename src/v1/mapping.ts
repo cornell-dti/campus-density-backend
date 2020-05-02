@@ -13,6 +13,14 @@ export const DISPLAY_MAP = {
   rose: 'Rose House Dining Room'
 };
 
+export const GYM_DISPLAY_MAP = {
+  noyes: 'Noyes',
+  teagleup: 'Teagle Up',
+  teagledown: 'Teagle Down',
+  helennewman: 'Helen Newman',
+  appel: 'Appel'
+}
+
 export const ID_MAP = {
   cook: 'Alice Cook House',
   cafejennie: 'Cafe Jennie',
