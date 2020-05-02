@@ -1,6 +1,8 @@
-import { firebaseDB } from '../auth'
 import { database } from 'firebase-admin'
 import { print } from 'util'
+import { firebaseDB } from '../auth'
+
+// eslint-disable no-async-promise-executor
 
 /**
  * This function computes the historical average of the weight and cardio occupancies
@@ -15,11 +17,11 @@ import { print } from 'util'
  * @param facility The facility id of the facility we are computing the historical
  * average of.
  */
-export const getAverageSpreadsheetHistoricalData = async (facility) => {
-  return new Promise(async (resolve, reject) => {
+export const getAverageSpreadsheetHistoricalData = async facility => {
+  return new Promise((resolve, reject) => {
     const mappingAverage = {} // {Monday: 11:20AM: {cardoSum: 300, weightSum: 400}}
 
-    await firebaseDB.collection('gymHistory')
+    firebaseDB.collection('gymHistory')
       .doc(facility) // get facility
       .collection('history') // go to the 'history' collection of that facility
       .get() // get all documents
@@ -29,7 +31,7 @@ export const getAverageSpreadsheetHistoricalData = async (facility) => {
           const dayForData = doc.data().day
           Object.keys(docDataContents).forEach(time => { // The keys of the JSON are the times for a specific day
             const occupancy = docDataContents[time]
-            if (!(dayForData in mappingAverage)) { //Create the appropriate mapping for the day if it doesn't exist
+            if (!(dayForData in mappingAverage)) { // Create the appropriate mapping for the day if it doesn't exist
               // Throughout this function, whenever we encounter a -1 (implying there's no one there), we simply substitute with a 0. 
               mappingAverage[dayForData] = {}
               mappingAverage[dayForData][time] = {
@@ -40,43 +42,36 @@ export const getAverageSpreadsheetHistoricalData = async (facility) => {
                 cardioCount: 1,
                 weightCount: 1
               }
-              //mappingCount[dayForData] = {}
-              //mappingCount[dayForData][time] = { cardioCount: 1, weightCount: 1 }
 
-            } else {
-              // Check if a specific time has been added to the mappings.
-              if (!(time in mappingAverage[dayForData])) {
-                mappingAverage[dayForData][time] = {
-                  cardioAverage:
-                    (occupancy.cardio === -1 ? 0 : occupancy.cardio),
-                  weightAverage:
-                    (occupancy.weights === -1 ? 0 : occupancy.weights),
-                  cardioCount: 1,
-                  weightCount: 1
-                }
-                //mappingCount[dayForData][time] = { cardioCount: 1, weightCount: 1 }
-              } else {
-                // The current day and time already exist, adjust values in mappings.
-
-                // Compute the new average based on the current acccumulation by (newVal + oldAverage * oldCount)/(oldCount + 1
-
-                mappingAverage[dayForData][time].cardioAverage =
-                  ((occupancy.cardio == -1 ? 0 : occupancy.cardio)
-                    + mappingAverage[dayForData][time].cardioAverage
-                    * mappingAverage[dayForData][time].cardioCount)
-                  / (mappingAverage[dayForData][time].cardioCount + 1)
-
-
-                mappingAverage[dayForData][time].weightAverage =
-                  ((occupancy.cardio == -1 ? 0 : occupancy.weights)
-                    + mappingAverage[dayForData][time].weightAverage
-                    * mappingAverage[dayForData][time].weightCount)
-                  / (mappingAverage[dayForData][time].weightCount + 1)
-
-                // Update mapping counts. 
-                mappingAverage[dayForData][time].cardioCount += 1
-                mappingAverage[dayForData][time].weightCount += 1
+            } else if (!(time in mappingAverage[dayForData])) { // Check if a specific time has been added to the mappings.å
+              mappingAverage[dayForData][time] = {
+                cardioAverage:
+                  (occupancy.cardio === -1 ? 0 : occupancy.cardio),
+                weightAverage:
+                  (occupancy.weights === -1 ? 0 : occupancy.weights),
+                cardioCount: 1,
+                weightCount: 1
               }
+              // mappingCount[dayForData][time] = { cardioCount: 1, weightCount: 1 }
+            } else {
+              // The current day and time already exist, adjust values in mappings.
+              // Compute the new average based on the current acccumulation by (newVal + oldAverage * oldCount)/(oldCount + 1
+              mappingAverage[dayForData][time].cardioAverage =
+                ((occupancy.cardio === -1 ? 0 : occupancy.cardio)
+                  + mappingAverage[dayForData][time].cardioAverage
+                  * mappingAverage[dayForData][time].cardioCount)
+                / (mappingAverage[dayForData][time].cardioCount + 1)
+
+
+              mappingAverage[dayForData][time].weightAverage =
+                ((occupancy.cardio === -1 ? 0 : occupancy.weights)
+                  + mappingAverage[dayForData][time].weightAverage
+                  * mappingAverage[dayForData][time].weightCount)
+                / (mappingAverage[dayForData][time].weightCount + 1)
+
+              // Update mapping counts. 
+              mappingAverage[dayForData][time].cardioCount += 1
+              mappingAverage[dayForData][time].weightCount += 1
             }
           })
         })
@@ -97,7 +92,6 @@ export const updateSpreadsheetAverages = () => {
   return new Promise((resolve, reject) => {
     getAverageSpreadsheetHistoricalData('noyes')
       .then(async results => {
-
         const averageDocuments = await firebaseDB
           .collection('gyms')
           .doc('noyes')
@@ -131,6 +125,7 @@ export const updateSpreadsheetAverages = () => {
  * data. 
  * @requires data.time is a string representation of 12-hour regular time, rounded to the nearest
  * quarter. Examples: 1:15pm, 11:45am, 12:15pm
+ *
  */
 export const updateLiveAverages = (gymID, day, data) => {
 
@@ -145,10 +140,7 @@ export const updateLiveAverages = (gymID, day, data) => {
 
     // get the JSON contents of both the results.
     const docData = doc.data()
-    if (!docData) reject('Could not fetch live averages')
-
-    // let spreadsheetData = spreadsheetDoc.data()
-    // if (!spreadsheetData) reject('Could not fetch spreadsheet averages')
+    if (!docData) reject(new Error('Could not fetch live averages'))
 
     // check if there is a time doc for this time
     if (docData[data.time]) {
@@ -181,6 +173,7 @@ export const updateLiveAverages = (gymID, day, data) => {
     }
 
     // push everything back to firebase.
+    // eslint-disable-next-line no-async-promise-executor
     await firebaseDB
       .collection('gyms')
       .doc(gymID)
@@ -200,59 +193,58 @@ export const updateLiveAverages = (gymID, day, data) => {
  * @param gymID id of the gym to get historical averages of
  * @param day day to fetch historical averages for
  */
-export const getHistoricalAverages = (gymID, day) => {
-  return new Promise(async (resolve, reject) => {
-    // get the live averages that are just calculated with the live data
-    const doc = await firebaseDB.collection('gyms')
-      .doc(gymID)
-      .collection('history')
-      .doc(day)
-      .get()
+export const getHistoricalAverages = async (gymID, day) => {
+  // get the live averages that are just calculated with the live data
+  const doc = await firebaseDB.collection('gyms')
+    .doc(gymID)
+    .collection('history')
+    .doc(day)
+    .get()
 
-    // get the spreadsheet averages stored in gymSpreadsheets
-    const spreadsheetDoc = await firebaseDB.collection('gymSpreadsheets')
-      .doc(gymID)
-      .collection('history')
-      .doc(day)
-      .get()
+  // get the spreadsheet averages stored in gymSpreadsheets
+  // eslint-disable-next-line no-async-promise-executor
+  const spreadsheetDoc = await firebaseDB.collection('gymSpreadsheets')
+    .doc(gymID)
+    .collection('history')
+    .doc(day)
+    .get()
 
-    // get the JSON contents of both the results.
-    const docData = doc.data()
-    if (!docData) reject('Could not fetch live averages')
+  // get the JSON contents of both the results.
+  const docData = doc.data()
+  if (!docData) throw new Error('Could not fetch live averages')
 
-    const spreadsheetData = spreadsheetDoc.data()
-    if (!spreadsheetData) reject('Could not fetch spreadsheet averages')
+  const spreadsheetData = spreadsheetDoc.data()
+  if (!spreadsheetData) throw new Error('Could not fetch spreadsheet averages')
 
-    const res = []
-    console.log(spreadsheetData)
-    Object.keys(spreadsheetData).forEach(time => {
+  const res = []
+  Object.keys(spreadsheetData).forEach(time => {
 
-      // retrieve cardio/weight data from the live averages JSON, and deal
-      // with the case where there is no data for this time by setting it to 0
-      const cardioLiveAverage = (docData[time] || 0).cardioLiveAverage || 0
-      const cardioLiveCount = (docData[time] || 0).cardioLiveCount || 0
-      const weightLiveAverage = (docData[time] || 0).weightLiveAverage || 0
-      const weightLiveCount = (docData[time] || 0).weightLiveCount || 0
+    // retrieve cardio/weight data from the live averages JSON, and deal
+    // with the case where there is no data for this time by setting it to 0
+    const cardioLiveAverage = (docData[time] || 0).cardioLiveAverage || 0
+    const cardioLiveCount = (docData[time] || 0).cardioLiveCount || 0
+    const weightLiveAverage = (docData[time] || 0).weightLiveAverage || 0
+    const weightLiveCount = (docData[time] || 0).weightLiveCount || 0
 
-      // compute new aggregate averages by averaging the live and spreadsheet averages
-      const newAggregateCardioAvg =
-        (cardioLiveAverage * cardioLiveCount +
-          spreadsheetData[time].cardioAverage * spreadsheetData[time].cardioCount)
-        / (cardioLiveCount + spreadsheetData[time].cardioCount)
+    // compute new aggregate averages by averaging the live and spreadsheet averages
+    const newAggregateCardioAvg =
+      (cardioLiveAverage * cardioLiveCount +
+        spreadsheetData[time].cardioAverage * spreadsheetData[time].cardioCount)
+      / (cardioLiveCount + spreadsheetData[time].cardioCount)
 
-      const newAggregateWeightAvg =
-        (weightLiveAverage * weightLiveCount +
-          spreadsheetData[time].weightsAverage * spreadsheetData[time].weightsCount)
-        / (weightLiveCount + spreadsheetData[time].weightsCount)
+    const newAggregateWeightAvg =
+      (weightLiveAverage * weightLiveCount +
+        spreadsheetData[time].weightsAverage * spreadsheetData[time].weightsCount)
+      / (weightLiveCount + spreadsheetData[time].weightsCount)
 
-      const data = {
-        time: time,
-        cardioAverage: newAggregateCardioAvg,
-        weightAverage: newAggregateWeightAvg
-      }
+    const data = {
+      time,
+      cardioAverage: newAggregateCardioAvg,
+      weightAverage: newAggregateWeightAvg
+    }
 
-      res.push(data)
-    })
-    resolve(res)
-  }).catch(err => console.log(err))
+    res.push(data)
+  })
+
+  return res
 }

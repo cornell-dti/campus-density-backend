@@ -15,8 +15,6 @@ export default function routes(redis?: Redis, credentials?) {
 
   const menuKey = req =>
     (req.query.facility ? `/menuData?${req.query.facility}` : `/menuData`);
-  const dateKey = req =>
-    (req.query.date ? `/menuData?${req.query.date}` : `/menuData`);
 
   router.get(
     '/menuData',

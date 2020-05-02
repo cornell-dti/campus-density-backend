@@ -1,13 +1,13 @@
 import * as express from 'express';
 // eslint-disable-line @typescript-eslint/no-var-requires
 import { Redis } from 'ioredis';
+import { addListener } from 'cluster';
 import { FacilityDB } from './db';
 import { ID_MAP, DISPLAY_MAP, GYM_DISPLAY_MAP } from '../mapping';
 import asyncify from '../lib/asyncify';
 import { cache } from '../lib/cache';
 
 import Datastore = require('@google-cloud/datastore');
-import { addListener } from 'cluster';
 
 export default function routes(redis?: Redis, credentials?) {
   const datastore = new Datastore(credentials ? { credentials } : undefined);

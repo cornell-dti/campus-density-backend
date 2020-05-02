@@ -90,7 +90,7 @@ export default function routes(redis?: Redis, credentials?) {
    * }
    */
   router.post(
-    '/update-live-averages',
+    '/updateLiveAverages',
     asyncify(async (req, res) => {
       updateLiveAverages(req.query.id, req.query.day, req.body)
         .then(() => res.status(200).send({ success: true }))
@@ -99,11 +99,14 @@ export default function routes(redis?: Redis, credentials?) {
   )
 
   router.get(
-    '/get-gym-averages',
+    '/getGymAverages',
     asyncify(async (req, res) => {
-      getHistoricalAverages(req.query.id, req.query.day)
-        .then(result => res.status(200).json(result))
-        .catch(err => res.status(400).send(err.message))
+      try {
+        const result = await getHistoricalAverages(req.query.id, req.query.day)
+        res.status(200).send(result)
+      } catch (error) {
+        res.status(400).send(error.message)
+      }
     })
   )
 

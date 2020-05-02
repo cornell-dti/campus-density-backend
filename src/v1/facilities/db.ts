@@ -206,12 +206,12 @@ export class FacilityDB extends DB {
 
   async gymFacilityHours(facilityId?: string, date?: string) {
     if (facilityId) {
-      return (await firebaseDB.collection("gymdata").doc(facilityId).get()).data();
+      return (await firebaseDB.collection('gymdata').doc(facilityId).get()).data();
     }
-    let data = []
-    const queryResult = await firebaseDB.collection("gymdata").get()
-    for (let doc of queryResult.docs) {
-      let docData = doc.data();
+    const data = []
+    const queryResult = await firebaseDB.collection('gymdata').get()
+    for (const doc of queryResult.docs) {
+      const docData = doc.data();
       docData.id = doc.id
       data.push(docData)
     }

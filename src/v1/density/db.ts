@@ -1,9 +1,9 @@
+import { print } from 'util';
 import { ID_MAP, UNITNAME_MAP, GYM_DISPLAY_MAP } from '../mapping';
 import { DBQuery, DB } from '../db';
 import * as Util from '../util';
 import { DensityDocument } from './models/density';
 import { firebaseDB } from '../auth';
-import { print } from 'util';
 
 const DAYS = {
     'Monday': 'M',
@@ -55,17 +55,17 @@ export class DensityDB extends DB {
     }
 
     async getAllGymsJSONArray() {
-        let jsonArr = []
+        const jsonArr = []
         await firebaseDB.collection('gymdata').get().then(async gymsSnapshot => {
-            for (var doc of gymsSnapshot.docs) {
-                let facId = doc.id
+            for (const doc of gymsSnapshot.docs) {
+                const facId = doc.id
                 const gymCountCollection = firebaseDB.collection('gymdata').doc(facId).collection('counts')
                 // eslint-disable-next-line no-await-in-loop
                 await gymCountCollection.orderBy('time', 'desc').limit(1).get().then(gymCountSnapshot => {
-                    let facilityObj = {}
-                    facilityObj['cardio'] = gymCountSnapshot.docs[0].get('cardio')
-                    facilityObj['weights'] = gymCountSnapshot.docs[0].get('weights')
-                    facilityObj['id'] = facId
+                    const facilityObj: any = {}
+                    facilityObj.cardio = gymCountSnapshot.docs[0].get('cardio')
+                    facilityObj.weights = gymCountSnapshot.docs[0].get('weights')
+                    facilityObj.id = facId
                     jsonArr.push(facilityObj)
                 })
             }
@@ -76,12 +76,12 @@ export class DensityDB extends DB {
     }
 
     async gymHowDense(facilityId?: string) {
-        let json = {}
+        const json: any = {}
         if (facilityId) {
             const gymCountCollection = firebaseDB.collection('gymdata').doc(facilityId).collection('counts')
             await gymCountCollection.orderBy('time', 'desc').limit(1).get().then(snapshot => {
-                json['cardio'] = snapshot.docs[0].get('cardio')
-                json['weights'] = snapshot.docs[0].get('weights')
+                json.cardio = snapshot.docs[0].get('cardio')
+                json.weights = snapshot.docs[0].get('weights')
             }).catch(err => {
                 console.log(err)
             })

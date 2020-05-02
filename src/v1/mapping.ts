@@ -14,11 +14,11 @@ export const DISPLAY_MAP = {
 };
 
 export const GYM_DISPLAY_MAP = {
-  noyes: "Noyes",
-  teagleup: "Teagle Up",
-  teagledown: "Teagle Down",
-  helennewman: "Helen Newman",
-  appel: "Appel"
+  noyes: 'Noyes',
+  teagleup: 'Teagle Up',
+  teagledown: 'Teagle Down',
+  helennewman: 'Helen Newman',
+  appel: 'Appel'
 }
 
 export const ID_MAP = {
