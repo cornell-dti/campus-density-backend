@@ -89,16 +89,4 @@ export class DensityDB extends DB {
         }
         return this.getAllGymsJSONArray()
     }
-
-    async gymHistoricalAverage(facilityId?: string, day?: string) {
-        let json = {}
-        if (!facilityId || !(facilityId in GYM_DISPLAY_MAP)) throw new Error('invalid facility id')
-        if (!day || !(day in DAYS)) throw new Error('invalid day provided')
-
-        const gymHistoryDocument = firebaseDB.collection('gyms').doc(facilityId).collection('history').doc(day);
-        await gymHistoryDocument.get().then(snapshot => {
-            json = snapshot.data()
-        });
-        return json
-    }
 }

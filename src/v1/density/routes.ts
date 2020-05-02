@@ -66,21 +66,6 @@ export default function routes(redis?: Redis, credentials?) {
     })
   );
 
-  // confirm other 2 methods, then delete this.
-  router.get(
-    '/gymHistoricalAverage',
-    asyncify(async (req, res) => {
-      try {
-        const queryResult = await (db.gymHistoricalAverage(req.query.id, req.query.day));
-        const data = JSON.stringify(queryResult)
-        res.status(200).send(data);
-      } catch (err) {
-        console.log(err)
-        res.status(400).send(err.message);
-      }
-    })
-  );
-
   /**
    * Sample req.body: 
    * {
