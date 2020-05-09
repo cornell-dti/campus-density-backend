@@ -78,7 +78,7 @@ export class DensityDB extends DB {
     async gymHowDense(facilityId?: string) {
         const json: any = {}
         if (facilityId) {
-            const gymCountCollection = firebaseDB.collection('gymdata').doc(facilityId).collection('counts')
+            const gymCountCollection = firebaseDB.collection('gyms').doc(facilityId).collection('counts')
             await gymCountCollection.orderBy('time', 'desc').limit(1).get().then(snapshot => {
                 json.cardio = snapshot.docs[0].get('cardio')
                 json.weights = snapshot.docs[0].get('weights')

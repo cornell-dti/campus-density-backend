@@ -20,7 +20,7 @@ import { Redis } from 'ioredis';
 import asyncify from '../lib/asyncify';
 import { DensityDB } from './db';
 import { cache } from '../lib/cache';
-import { getAverageSpreadsheetHistoricalData, updateLiveAverages, getHistoricalAverages } from '../data/gymHistoricalAnalysis'
+import { updateLiveAverages, getHistoricalAverages } from '../data/gymHistoricalAnalysis'
 
 import Datastore = require('@google-cloud/datastore');
 import bodyParser = require('body-parser');
@@ -57,8 +57,7 @@ export default function routes(redis?: Redis, credentials?) {
     asyncify(async (req, res) => {
       try {
         const queryResult = await (req.query.id ? db.gymHowDense(req.query.id) : db.gymHowDense());
-        const data = JSON.stringify(queryResult)
-        res.status(200).send(data);
+        res.status(200).json(queryResult);
       } catch (err) {
         console.log(err)
         res.status(400).send(err.message);
