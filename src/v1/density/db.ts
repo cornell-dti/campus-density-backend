@@ -59,7 +59,7 @@ export class DensityDB extends DB {
         await firebaseDB.collection('gymdata').get().then(async gymsSnapshot => {
             for (const doc of gymsSnapshot.docs) {
                 const facId = doc.id
-                const gymCountCollection = firebaseDB.collection('gymdata').doc(facId).collection('counts')
+                const gymCountCollection = firebaseDB.collection('gyms').doc(facId).collection('counts')
                 // eslint-disable-next-line no-await-in-loop
                 await gymCountCollection.orderBy('time', 'desc').limit(1).get().then(gymCountSnapshot => {
                     const facilityObj: any = {}
