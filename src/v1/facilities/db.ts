@@ -1,19 +1,24 @@
-import * as moment from 'moment-timezone'
-import { firebaseDB } from '../auth';
-import { ID_MAP, DISPLAY_MAP, GYM_DISPLAY_MAP } from '../mapping';
-import { FacilityHourSet, FacilityInfo } from './models/info';
-import { CampusLocation } from '../models/campus';
-import { DBQuery, DB, DatabaseQueryNoParams } from '../db';
-import { FacilityMetadata } from './models/list';
-import { FacilityHours, DailyHours } from './models/hours';
+import { firebaseDB } from "../auth";
+import { ID_MAP, DISPLAY_MAP, GYM_DISPLAY_MAP } from "../mapping";
+import { FacilityHourSet, FacilityInfo } from "./models/info";
+import { CampusLocation } from "../models/campus";
+import { DBQuery, DB, DatabaseQueryNoParams } from "../db";
+import { FacilityMetadata } from "./models/list";
+import { FacilityHours, DailyHours } from "./models/hours";
+import moment = require("moment");
+require("moment-timezone");
+
+moment.tz.setDefault("America/New_York");
 
 function getInfo(id: string, hours: FacilityInfoDocument[]): FacilityInfo {
   const date = Math.floor(Date.now() / 1000);
 
-  const facilityHours: FacilityInfoDocument = hours.find(x => x.id === id);
+  const facilityHours: FacilityInfoDocument = hours.find((x) => x.id === id);
 
   if (facilityHours && facilityHours.operatingHours) {
-    const nextClosing = facilityHours.operatingHours.find(e => e.startTimestamp < date && e.endTimestamp > date);
+    const nextClosing = facilityHours.operatingHours.find(
+      (e) => e.startTimestamp < date && e.endTimestamp > date
+    );
 
     const nextClosingTimestamp = nextClosing ? nextClosing.endTimestamp : -1;
 
@@ -23,7 +28,8 @@ function getInfo(id: string, hours: FacilityInfoDocument[]): FacilityInfo {
       // TODO This is broken. Needs to find last opening, not first opening.
       // TODO This may be fixed now... test this.
       nextOpen = facilityHours.operatingHours.reduce(
-        (previous, current) => (current.startTimestamp > previous.startTimestamp ? current : previous),
+        (previous, current) =>
+          current.startTimestamp > previous.startTimestamp ? current : previous,
         FacilityHourSet.assign({ startTimestamp: 0, endTimestamp: 0 })
       );
     }
@@ -35,35 +41,40 @@ function getInfo(id: string, hours: FacilityInfoDocument[]): FacilityInfo {
       isOpen: nextClosingTimestamp !== -1,
       description: facilityHours.description,
       closingAt: nextClosingTimestamp,
-      dailyHours: facilityHours.operatingHours
+      dailyHours: facilityHours.operatingHours,
     });
   }
   return null;
 }
 
-function getHoursInfo(id: string, hours: FacilityHoursDocument[], startDate: string, endDate: string): FacilityHours {
+function getHoursInfo(
+  id: string,
+  hours: FacilityHoursDocument[],
+  startDate: string,
+  endDate: string
+): FacilityHours {
   // need to go through hours and find those between specified start and end date
   // in the DailyHours object we create, we will have a FacilityHourSet[]. We will create a new DailyHours object
   // for every date in the range, and in the FacilityHourSet[] for each of these DailyHours objects, we put
   // all time ranges for that given date.
   // Add all the DailyHours objects to an array, and return a FacilityHours object where hours is assigned to this
   // array.
-  const dateBegin = moment(startDate, 'MM-DD-YY').tz('America/New_York').unix()
-  const dateEnd = moment(endDate, 'MM-DD-YY').tz('America/New_York').unix()
+  const dateBegin = moment(startDate);
+  const dateEnd = moment(endDate);
   const facilityId = id;
-  const validDailyHours = []
+  const validDailyHours: DailyHours[] = [];
   for (const doc of hours) {
     if (doc.id === id) {
       for (const facilityHours of doc.hours) {
-        if (dateBegin <= moment(facilityHours.date, 'YYYY-MM-DD').tz('America/New_York').unix()
-          && dateEnd >= moment(facilityHours.date, 'YYYY-MM-DD').tz('America/New_York').unix()) {
+        const facilityDate = moment(facilityHours.date);
+        if (dateBegin <= facilityDate && dateEnd >= facilityDate) {
           validDailyHours.push(
             DailyHours.assign({
               date: facilityHours.date,
               dayOfWeek: facilityHours.dayOfWeek,
               status: facilityHours.status,
               statusText: facilityHours.statusText,
-              dailyHours: facilityHours.dailyHours
+              dailyHours: facilityHours.dailyHours,
             })
           );
         }
@@ -72,7 +83,7 @@ function getHoursInfo(id: string, hours: FacilityHoursDocument[], startDate: str
   }
   return FacilityHours.assign({
     id: facilityId,
-    hours: validDailyHours
+    hours: validDailyHours,
   });
 }
 
@@ -93,31 +104,29 @@ export class FacilityDB extends DB {
     super(datastore);
   }
 
-  async facilityInfo(facilityId?: string): Promise<DBQuery<string, FacilityInfo>[]> {
+  async facilityInfo(
+    facilityId?: string
+  ): Promise<DBQuery<string, FacilityInfo>[]> {
     const { datastore } = this;
-
-    const query = datastore.createQuery('hours');
+    const query = datastore.createQuery("hours");
 
     try {
       const [hours] = await datastore.runQuery(query);
 
       if (facilityId) {
         const id = facilityId;
-
         if (id in ID_MAP) {
           const info = getInfo(id, hours);
-
           if (info) {
             return [DB.query(info, id)];
           }
         }
-
         throw new Error(`Invalid ID: ${id}`);
       } else {
         return Object.keys(ID_MAP)
-          .map(id => getInfo(id, hours))
-          .filter(obj => obj != null)
-          .map(info => DB.query(info));
+          .map((id) => getInfo(id, hours))
+          .filter((obj) => obj != null)
+          .map((info) => DB.query(info));
       }
     } catch (err) {
       console.log(err.message);
@@ -125,14 +134,16 @@ export class FacilityDB extends DB {
     }
   }
 
-  async facilityList(facilityListType):
-  /* eslint-disable-line class-methods-use-this */ Promise<
-    DatabaseQueryNoParams<FacilityMetadata>[]> {
-    return Object.keys(facilityListType).map(key =>
+  async facilityList(
+    facilityListType
+  ): /* eslint-disable-line class-methods-use-this */ Promise<
+    DatabaseQueryNoParams<FacilityMetadata>[]
+  > {
+    return Object.keys(facilityListType).map((key) =>
       DB.query(
         FacilityMetadata.assign({
           displayName: facilityListType[key],
-          id: key
+          id: key,
         })
       )
     );
@@ -140,34 +151,36 @@ export class FacilityDB extends DB {
 
   // Should I just go ahead and delete these then
   async efacilityList(): /* eslint-disable-line class-methods-use-this */ Promise<
-    DatabaseQueryNoParams<FacilityMetadata>[]> {
-    return Object.keys(DISPLAY_MAP).map(key =>
+    DatabaseQueryNoParams<FacilityMetadata>[]
+  > {
+    return Object.keys(DISPLAY_MAP).map((key) =>
       DB.query(
         FacilityMetadata.assign({
           displayName: DISPLAY_MAP[key],
-          id: key
+          id: key,
         })
       )
     );
   }
 
-  async gymFacilityList(): Promise<
-    DatabaseQueryNoParams<FacilityMetadata>[]> {
-    return Object.keys(GYM_DISPLAY_MAP).map(key =>
+  async gymFacilityList(): Promise<DatabaseQueryNoParams<FacilityMetadata>[]> {
+    return Object.keys(GYM_DISPLAY_MAP).map((key) =>
       DB.query(
         FacilityMetadata.assign({
           displayName: DISPLAY_MAP[key],
-          id: key
+          id: key,
         })
       )
     );
   }
 
   async facilityHours(
-    facilityId?: string, startDate?: string, endDate?: string
+    facilityId?: string,
+    startDate?: string,
+    endDate?: string
   ): Promise<DBQuery<string, FacilityHours>[]> {
     const { datastore } = this;
-    const query = datastore.createQuery('development-testing-hours');
+    const query = datastore.createQuery("development-testing-hours");
     try {
       const [hoursrange] = await datastore.runQuery(query);
       if (facilityId) {
@@ -179,42 +192,40 @@ export class FacilityDB extends DB {
             if (hoursInfo) {
               return [DB.query(hoursInfo, id)];
             }
-          }
-          else {
+          } else {
             throw new Error(`Invalid ID`);
           }
-        }
-        else {
+        } else {
           throw new Error(`Missing start and/or end date`);
         }
-      }
-      else {
+      } else {
         if (startDate && endDate) {
           return Object.keys(ID_MAP)
-            .map(id => getHoursInfo(id, hoursrange, startDate, endDate))
-            .filter(obj => obj != null)
-            .map(info => DB.query(info));
+            .map((id) => getHoursInfo(id, hoursrange, startDate, endDate))
+            .filter((obj) => obj != null)
+            .map((info) => DB.query(info));
         }
         throw new Error(`Missing start and/or end date`);
       }
       throw new Error(`Need to include dates and facility id`);
-    }
-    catch (err) {
+    } catch (err) {
       throw new Error(err.message);
     }
   }
 
   async gymFacilityHours(facilityId?: string, date?: string) {
     if (facilityId) {
-      return (await firebaseDB.collection('gymdata').doc(facilityId).get()).data();
+      return (
+        await firebaseDB.collection("gymdata").doc(facilityId).get()
+      ).data();
     }
-    const data = []
-    const queryResult = await firebaseDB.collection('gymdata').get()
+    const data = [];
+    const queryResult = await firebaseDB.collection("gymdata").get();
     for (const doc of queryResult.docs) {
       const docData = doc.data();
-      docData.id = doc.id
-      data.push(docData)
+      docData.id = doc.id;
+      data.push(docData);
     }
-    return data
+    return data;
   }
 }
