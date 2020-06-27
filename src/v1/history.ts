@@ -44,20 +44,11 @@ const formattedHours = () => ({
 
 function format(analysis) {
   return analysis.map(({ id, history }) => {
-    const dailyHours = {};
-    Object.entries(history).forEach(([k, v]) => {
-      dailyHours[k] = Object.assign(formattedHours(), v);
-    });
-
     return {
       id,
-      hours: dailyHours,
+      hours: history,
     };
   });
-}
-
-function formatId(analysis, id) {
-  return analysis.find((v) => v.id === id);
 }
 
 function historicalData(id, mask) {
@@ -65,7 +56,7 @@ function historicalData(id, mask) {
     data = format(analysis);
   }
   if (id) {
-    const d = formatId(data, id);
+    const d = data.find((v) => v.id === id);
     if (d) {
       Object.entries(d.hours).forEach(([k, v]) => {
         d.hours[k] = Object.assign(v, mask[k]);
@@ -128,7 +119,6 @@ export default function routes(redis?: Redis, credentials?) {
 
         res.status(200).send(data);
       } catch (err) {
-        console.log(err);
         // TODO Send actual error codes based on errors. (this applies to all routes)
         res.status(400).send(err);
       }
