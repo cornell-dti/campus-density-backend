@@ -2,9 +2,9 @@ import * as express from "express";
 import { Redis } from "ioredis";
 import { analysis } from "./data/historicalAnalysis";
 import { FacilityDB } from "./facilities/db";
-import { ID_MAP, DISPLAY_MAP, GYM_DISPLAY_MAP } from "./mapping";
 import asyncify from "./lib/asyncify";
 import { cache } from "./lib/cache";
+
 import moment = require("moment");
 require("moment-timezone");
 
