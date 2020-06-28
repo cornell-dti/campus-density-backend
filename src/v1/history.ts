@@ -85,7 +85,7 @@ export default function routes(redis?: Redis, credentials?) {
         const facilityHours = await db.facilityHours(
           req.query.id,
           moment().format("YYYY-MM-DD"),
-          moment().add(7, "d").format("YYYY-MM-DD")
+          moment().add(6, "d").format("YYYY-MM-DD")
         );
         const results = facilityHours.map((v) => v.result)[0];
 
