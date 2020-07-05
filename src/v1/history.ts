@@ -10,8 +10,7 @@ require("moment-timezone");
 
 moment.tz.setDefault("America/New_York");
 
-let data = null;
-
+// inclusive range function
 const range = (start, end, length = end - start + 1) =>
   Array.from({ length }, (_, i) => start + i);
 
@@ -51,20 +50,48 @@ function format(analysis) {
   });
 }
 
-function historicalData(id, mask) {
-  if (data == null) {
-    data = format(analysis);
-  }
-  if (id) {
-    const d = data.find((v) => v.id === id);
-    if (d) {
-      Object.entries(d.hours).forEach(([k, v]) => {
-        d.hours[k] = Object.assign(v, mask[k]);
-      });
-      return JSON.stringify([d]);
-    }
+function historicalData(data, id, mask) {
+  const d = data.find((v) => v.id === id);
+  if (d) {
+    Object.entries(d.hours).forEach(([k, v]) => {
+      d.hours[k] = Object.assign(v, mask[k]);
+    });
+    return d;
   }
   throw new Error("Invalid ID");
+}
+
+async function facilityData(data, id, db) {
+  const facilityHours = await db.facilityHours(
+    id,
+    moment().format("YYYY-MM-DD"),
+    moment().add(6, "d").format("YYYY-MM-DD")
+  );
+  const results = facilityHours.map((v) => v.result)[0];
+
+  const mask = {
+    SUN: formattedHours(),
+    MON: formattedHours(),
+    TUE: formattedHours(),
+    WED: formattedHours(),
+    THU: formattedHours(),
+    FRI: formattedHours(),
+    SAT: formattedHours(),
+  };
+  results.hours.forEach((element) => {
+    const hours = element.dailyHours;
+    const start = moment.unix(hours.startTimestamp);
+    const end = moment.unix(hours.endTimestamp);
+    const day = start.format("ddd").toUpperCase();
+
+    const startHour = start.hour();
+    const endHour = end.hour();
+    for (const x of range(startHour, endHour)) {
+      delete mask[day][x];
+    }
+  });
+
+  return historicalData(data, id, mask);
 }
 
 import Datastore = require("@google-cloud/datastore");
@@ -82,42 +109,23 @@ export default function routes(redis?: Redis, credentials?) {
     cache(historicalDataKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
-        const facilityHours = await db.facilityHours(
-          req.query.id,
-          moment().format("YYYY-MM-DD"),
-          moment().add(6, "d").format("YYYY-MM-DD")
-        );
-        const results = facilityHours.map((v) => v.result)[0];
-
-        const mask = {
-          SUN: formattedHours(),
-          MON: formattedHours(),
-          TUE: formattedHours(),
-          WED: formattedHours(),
-          THU: formattedHours(),
-          FRI: formattedHours(),
-          SAT: formattedHours(),
-        };
-        results.hours.forEach((element) => {
-          const hours = element.dailyHours;
-          const start = moment.unix(hours.startTimestamp);
-          const end = moment.unix(hours.endTimestamp);
-          const day = start.format("ddd").toUpperCase();
-
-          const startHour = start.hour();
-          const endHour = end.hour();
-          for (const x of range(startHour, endHour)) {
-            delete mask[day][x];
-          }
-        });
-
-        const data = historicalData(req.query.id, mask);
-
-        if (redis) {
-          redis.setex(historicalDataKey(req), 60 * 10, data);
+        let result;
+        const data = format(analysis);
+        const id = req.query.id;
+        if (id) {
+          result = [await facilityData(data, id, db)];
+        } else {
+          await Promise.all(
+            data.map(async (facility) => facilityData(data, facility.id, db))
+          );
+          result = data;
         }
 
-        res.status(200).send(data);
+        if (redis) {
+          redis.setex(historicalDataKey(req), 60 * 10, result);
+        }
+
+        res.status(200).send(result);
       } catch (err) {
         // TODO Send actual error codes based on errors. (this applies to all routes)
         res.status(400).send(err);
