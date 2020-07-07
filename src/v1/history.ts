@@ -106,12 +106,13 @@ export default function routes(redis?: Redis, credentials?) {
 
   router.get(
     '/historicalData',
-    cache(historicalDataKey, redis),
+    // no caching since iOS and android handle historical data differently
+    // cache(historicalDataKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
         let result;
         const data = format(analysis);
-        const {id} = req.query;
+        const { id } = req.query;
         if (id) {
           result = [await facilityData(data, id, db)];
         } else {
