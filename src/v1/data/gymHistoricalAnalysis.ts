@@ -1,7 +1,8 @@
-import { database } from "firebase-admin";
-import { print } from "util";
-import { firebaseDB } from "../auth";
-const moment = require("moment");
+import { database } from 'firebase-admin';
+import { print } from 'util';
+import * as moment from 'moment';
+import { firebaseDB } from '../auth';
+
 
 // eslint-disable no-async-promise-executor
 
@@ -18,20 +19,20 @@ const moment = require("moment");
  * @param facility The facility id of the facility we are computing the historical
  * average of.
  */
-export const getAverageSpreadsheetHistoricalData = async (facility) => {
+export const getAverageSpreadsheetHistoricalData = async facility => {
   return new Promise((resolve, reject) => {
     const mappingAverage = {}; // {Monday: 11:20AM: {cardoSum: 300, weightSum: 400}}
 
     firebaseDB
-      .collection("gymHistory")
+      .collection('gymHistory')
       .doc(facility) // get facility
-      .collection("history") // go to the 'history' collection of that facility
+      .collection('history') // go to the 'history' collection of that facility
       .get() // get all documents
-      .then((querySnapshot) => {
-        querySnapshot.docs.forEach((doc) => {
+      .then(querySnapshot => {
+        querySnapshot.docs.forEach(doc => {
           const docDataContents = doc.data().data; // This contains the mapping from time to occupancies
           const dayForData = doc.data().day;
-          Object.keys(docDataContents).forEach((time) => {
+          Object.keys(docDataContents).forEach(time => {
             // The keys of the JSON are the times for a specific day
             const occupancy = docDataContents[time];
             if (!(dayForData in mappingAverage)) {
@@ -42,7 +43,7 @@ export const getAverageSpreadsheetHistoricalData = async (facility) => {
                 cardioAverage: occupancy.cardio === -1 ? 0 : occupancy.cardio,
                 weightAverage: occupancy.weights === -1 ? 0 : occupancy.weights,
                 cardioCount: 1,
-                weightCount: 1,
+                weightCount: 1
               };
             } else if (!(time in mappingAverage[dayForData])) {
               // Check if a specific time has been added to the mappings.å
@@ -50,7 +51,7 @@ export const getAverageSpreadsheetHistoricalData = async (facility) => {
                 cardioAverage: occupancy.cardio === -1 ? 0 : occupancy.cardio,
                 weightAverage: occupancy.weights === -1 ? 0 : occupancy.weights,
                 cardioCount: 1,
-                weightCount: 1,
+                weightCount: 1
               };
               // mappingCount[dayForData][time] = { cardioCount: 1, weightCount: 1 }
             } else {
@@ -76,7 +77,7 @@ export const getAverageSpreadsheetHistoricalData = async (facility) => {
         });
         resolve(mappingAverage);
       })
-      .catch((err) => reject(err));
+      .catch(err => reject(err));
   });
 };
 
@@ -89,23 +90,23 @@ export const getAverageSpreadsheetHistoricalData = async (facility) => {
  */
 export const updateSpreadsheetAverages = () => {
   return new Promise((resolve, reject) => {
-    getAverageSpreadsheetHistoricalData("noyes")
-      .then(async (results) => {
+    getAverageSpreadsheetHistoricalData('noyes')
+      .then(async results => {
         const averageDocuments = await firebaseDB
-          .collection("gyms")
-          .doc("noyes")
-          .collection("history");
+          .collection('gyms')
+          .doc('noyes')
+          .collection('history');
 
-        Object.keys(results).forEach((day) => {
+        Object.keys(results).forEach(day => {
           averageDocuments
             .doc(day)
             .set(results[day])
-            .catch((err) => reject(err));
+            .catch(err => reject(err));
         });
 
         resolve();
       })
-      .catch((err) => reject(err));
+      .catch(err => reject(err));
   });
 };
 
@@ -132,15 +133,15 @@ export const updateSpreadsheetAverages = () => {
 export const updateLiveAverages = async (gymID, day, data) => {
   // get the live averages that are just calculated with the live data
   const doc = await firebaseDB
-    .collection("gyms")
+    .collection('gyms')
     .doc(gymID)
-    .collection("history")
+    .collection('history')
     .doc(day)
     .get();
 
   // get the JSON contents of both the results.
   const docData = doc.data();
-  if (!docData) throw new Error("Could not fetch live averages");
+  if (!docData) throw new Error('Could not fetch live averages');
 
   // check if there is a time doc for this time
   if (docData[data.time]) {
@@ -178,12 +179,12 @@ export const updateLiveAverages = async (gymID, day, data) => {
   // push everything back to firebase.
   // eslint-disable-next-line no-async-promise-executor
   await firebaseDB
-    .collection("gyms")
+    .collection('gyms')
     .doc(gymID)
-    .collection("history")
+    .collection('history')
     .doc(day)
     .set(docData)
-    .catch((err) => {
+    .catch(err => {
       throw new Error(err);
     });
 };
@@ -195,36 +196,36 @@ export const updateLiveAverages = async (gymID, day, data) => {
  * @param day day to fetch historical averages for
  */
 export const getHistoricalAverages = async (gymID, day) => {
-  if (!gymID && !day) throw new Error("Please enter a valid gym id and day.");
-  else if (!gymID) throw new Error("Please enter a valid gym id.");
-  else if (!day) throw new Error("Please enter a valid day.");
+  if (!gymID && !day) throw new Error('Please enter a valid gym id and day.');
+  else if (!gymID) throw new Error('Please enter a valid gym id.');
+  else if (!day) throw new Error('Please enter a valid day.');
 
   // get the live averages that are just calculated with the live data
   const doc = await firebaseDB
-    .collection("gyms")
+    .collection('gyms')
     .doc(gymID)
-    .collection("history")
+    .collection('history')
     .doc(day)
     .get();
 
   // get the spreadsheet averages stored in gymSpreadsheets
   // eslint-disable-next-line no-async-promise-executor
   const spreadsheetDoc = await firebaseDB
-    .collection("gymSpreadsheets")
+    .collection('gymSpreadsheets')
     .doc(gymID)
-    .collection("history")
+    .collection('history')
     .doc(day)
     .get();
 
   // get the JSON contents of both the results.
   const docData = doc.data();
-  if (!docData) throw new Error("Could not fetch live averages.");
+  if (!docData) throw new Error('Could not fetch live averages.');
 
   const spreadsheetData = spreadsheetDoc.data();
-  if (!spreadsheetData) throw new Error("Could not fetch spreadsheet averages");
+  if (!spreadsheetData) throw new Error('Could not fetch spreadsheet averages');
 
   const res = [];
-  Object.keys(spreadsheetData).forEach((time) => {
+  Object.keys(spreadsheetData).forEach(time => {
     // retrieve cardio/weight data from the live averages JSON, and deal
     // with the case where there is no data for this time by setting it to 0
     const cardioLiveAverage = (docData[time] || 0).cardioLiveAverage || 0;
@@ -248,16 +249,16 @@ export const getHistoricalAverages = async (gymID, day) => {
     const data = {
       time,
       cardioAverage: newAggregateCardioAvg,
-      weightAverage: newAggregateWeightAvg,
+      weightAverage: newAggregateWeightAvg
     };
 
     res.push(data);
   });
 
   res.sort((a, b) => {
-    const date = moment().format("YYYY-MM-DD ");
-    const timeA = moment(date + a.time, "YYYY-MM-DD h:mma");
-    const timeB = moment(date + b.time, "YYYY-MM-DD h:mma");
+    const date = moment().format('YYYY-MM-DD ');
+    const timeA = moment(date + a.time, 'YYYY-MM-DD h:mma');
+    const timeB = moment(date + b.time, 'YYYY-MM-DD h:mma');
     return timeA.diff(timeB);
   });
   return res;
