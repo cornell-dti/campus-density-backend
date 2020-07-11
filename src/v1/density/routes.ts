@@ -15,31 +15,38 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import * as express from 'express';
-import { Redis } from 'ioredis';
-import asyncify from '../lib/asyncify';
-import { DensityDB } from './db';
-import { cache } from '../lib/cache';
-import { getAverageSpreadsheetHistoricalData, updateLiveAverages, getHistoricalAverages } from '../data/gymHistoricalAnalysis'
+import * as express from "express";
+import { Redis } from "ioredis";
+import asyncify from "../lib/asyncify";
+import { DensityDB } from "./db";
+import { cache } from "../lib/cache";
+import {
+  getAverageSpreadsheetHistoricalData,
+  updateLiveAverages,
+  getHistoricalAverages,
+} from "../data/gymHistoricalAnalysis";
+const moment = require("moment");
 
-import Datastore = require('@google-cloud/datastore');
-import bodyParser = require('body-parser');
+import Datastore = require("@google-cloud/datastore");
+import bodyParser = require("body-parser");
 
 export default function routes(redis?: Redis, credentials?) {
   const datastore = new Datastore(credentials ? { credentials } : undefined);
   const db = new DensityDB(datastore);
 
   const router = express.Router();
-  router.use(bodyParser.json())
-  const key = req => `/howDense?${req.query.id || ''}`.toLowerCase();
+  router.use(bodyParser.json());
+  const key = (req) => `/howDense?${req.query.id || ""}`.toLowerCase();
 
   router.get(
-    '/howDense',
+    "/howDense",
     cache(key, redis),
     asyncify(async (req, res) => {
       try {
-        const query = await (req.query.id ? db.howDense(req.query.id) : db.howDense());
-        const data = JSON.stringify(query.map(v => v.result));
+        const query = await (req.query.id
+          ? db.howDense(req.query.id)
+          : db.howDense());
+        const data = JSON.stringify(query.map((v) => v.result));
 
         if (redis) {
           redis.setex(key(req), 60, data);
@@ -53,21 +60,23 @@ export default function routes(redis?: Redis, credentials?) {
   );
 
   router.get(
-    '/gymHowDense',
+    "/gymHowDense",
     asyncify(async (req, res) => {
       try {
-        const queryResult = await (req.query.id ? db.gymHowDense(req.query.id) : db.gymHowDense());
-        const data = JSON.stringify(queryResult)
+        const queryResult = await (req.query.id
+          ? db.gymHowDense(req.query.id)
+          : db.gymHowDense());
+        const data = JSON.stringify(queryResult);
         res.status(200).send(data);
       } catch (err) {
-        console.log(err)
+        console.log(err);
         res.status(400).send(err.message);
       }
     })
   );
 
   /**
-   * Sample req.body: 
+   * Sample req.body:
    * {
    *    time: '11:15AM',
    *    cardio: 13,
@@ -75,28 +84,31 @@ export default function routes(redis?: Redis, credentials?) {
    * }
    */
   router.post(
-    '/updateLiveAverages',
+    "/updateLiveAverages",
     asyncify(async (req, res) => {
       try {
-        await updateLiveAverages(req.query.id, req.query.day, req.body)
-        res.status(200).send({ success: 'true' })
-      } catch (error) {
-        res.status(400).send({ success: false, error: error.message })
+        await updateLiveAverages(req.query.id, req.query.day, req.body);
+        res.status(200).send({ success: "true" });
+      } catch (err) {
+        res.status(400).send({ success: false, error: err.message });
       }
     })
-  )
+  );
 
   router.get(
-    '/getGymAverages',
+    "/getGymAverages",
     asyncify(async (req, res) => {
       try {
-        const result = await getHistoricalAverages(req.query.id, req.query.day)
-        res.status(200).send(result)
-      } catch (error) {
-        res.status(400).send(error.message)
+        const id = req.query.id || "";
+        const day = req.query.day || "";
+        const dayFormat = moment().set("day", day).format("dddd") || day;
+        const result = await getHistoricalAverages(id, dayFormat);
+        res.status(200).send(result);
+      } catch (err) {
+        res.status(400).send({ success: false, error: err.message });
       }
     })
-  )
+  );
 
   return router;
 }

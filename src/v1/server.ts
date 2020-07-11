@@ -10,7 +10,7 @@ import Auth, { authenticated } from "./auth";
 export default function routes(redis?: Redis, credentials?) {
   const router = express.Router();
 
-  router.use("/", authenticated);
+  //router.use("/", authenticated);
   router.use(bodyParser.json());
   router.use("/", densityRoutes(redis, credentials));
   router.use("/", facilityRoutes(redis, credentials));
