@@ -3,6 +3,43 @@ import { print } from 'util';
 import * as moment from 'moment';
 import { firebaseDB } from '../auth';
 
+const validDays = new Set([
+  '0',
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '0th',
+  '1st',
+  '2nd',
+  '3rd',
+  '4th',
+  '5th',
+  '6th',
+  'su',
+  'mo',
+  'tu',
+  'we',
+  'th',
+  'fr',
+  'sa',
+  'sun',
+  'mon',
+  'tue',
+  'wed',
+  'thu',
+  'fri',
+  'sat',
+  'sunday',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday'
+]);
 
 // eslint-disable no-async-promise-executor
 
@@ -196,16 +233,21 @@ export const updateLiveAverages = async (gymID, day, data) => {
  * @param day day to fetch historical averages for
  */
 export const getHistoricalAverages = async (gymID, day) => {
-  if (!gymID && !day) throw new Error('Please enter a valid gym id and day.');
+  const validDay = validDays.has(day.toLowerCase());
+
+  if (!gymID && (!day || !validDay))
+    throw new Error('Please enter a valid gym id and day.');
   else if (!gymID) throw new Error('Please enter a valid gym id.');
-  else if (!day) throw new Error('Please enter a valid day.');
+  else if (!day || !validDay) throw new Error('Please enter a valid day.');
+
+  const dayFormat = moment().set({ day }).format('dddd');
 
   // get the live averages that are just calculated with the live data
   const doc = await firebaseDB
     .collection('gyms')
     .doc(gymID)
     .collection('history')
-    .doc(day)
+    .doc(dayFormat)
     .get();
 
   // get the spreadsheet averages stored in gymSpreadsheets
@@ -214,7 +256,7 @@ export const getHistoricalAverages = async (gymID, day) => {
     .collection('gymSpreadsheets')
     .doc(gymID)
     .collection('history')
-    .doc(day)
+    .doc(dayFormat)
     .get();
 
   // get the JSON contents of both the results.

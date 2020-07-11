@@ -17,7 +17,6 @@
 
 import * as express from 'express';
 import { Redis } from 'ioredis';
-import * as moment from 'moment';
 import asyncify from '../lib/asyncify';
 import { DensityDB } from './db';
 import { cache } from '../lib/cache';
@@ -101,8 +100,7 @@ export default function routes(redis?: Redis, credentials?) {
       try {
         const id = req.query.id || '';
         const day = req.query.day || '';
-        const dayFormat = moment().set('day', day).format('dddd') || day;
-        const result = await getHistoricalAverages(id, dayFormat);
+        const result = await getHistoricalAverages(id, day);
         res.status(200).send(result);
       } catch (err) {
         res.status(400).send({ success: false, error: err.message });
