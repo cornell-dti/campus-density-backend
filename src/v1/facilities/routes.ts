@@ -44,24 +44,27 @@ export default function routes(redis?: Redis, credentials?) {
         const data = JSON.stringify(gymFacilityList.map(v => v.result));
 
         if (redis) {
-          redis.setex(`/gymFacilityList`, 60 * 10, data)
+          redis.setex(`/gymFacilityList`, 60 * 10, data);
         }
 
-        res.status(200).send(data)
+        res.status(200).send(data);
       } catch (err) {
-        res.status(400).send(err)
+        res.status(400).send(err);
       }
     })
-  )
+  );
 
-  const facilityInfoKey = req => (req.query.id ? `/facilityInfo?${req.query.id}` : `/facilityInfo`);
+  const facilityInfoKey = req =>
+    req.query.id ? `/facilityInfo?${req.query.id}` : `/facilityInfo`;
 
   router.get(
     '/facilityInfo',
     cache(facilityInfoKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
-        const facilityInfo = await (req.query.id ? db.facilityInfo(req.query.id) : db.facilityInfo());
+        const facilityInfo = await (req.query.id
+          ? db.facilityInfo(req.query.id)
+          : db.facilityInfo());
         const data = JSON.stringify(facilityInfo.map(v => v.result));
 
         if (redis) {
@@ -76,14 +79,20 @@ export default function routes(redis?: Redis, credentials?) {
   );
 
   const facilityHoursKey = req =>
-    `/facilityHours?${req.query.id || ''}${`&${req.query.startDate}` || ''}${`&${req.query.endDate}` || ''}`;
+    `/facilityHours?${req.query.id || ''}${`&${req.query.startDate}` || ''}${
+      `&${req.query.endDate}` || ''
+    }`;
 
   router.get(
     '/facilityHours',
     cache(facilityHoursKey, redis),
     asyncify(async (req, res) => {
       try {
-        const facilityHours = await db.facilityHours(req.query.id, req.query.startDate, req.query.endDate);
+        const facilityHours = await db.facilityHours(
+          req.query.id,
+          req.query.startDate,
+          req.query.endDate
+        );
         const data = JSON.stringify(facilityHours.map(v => v.result));
 
         if (redis) {
@@ -102,20 +111,22 @@ export default function routes(redis?: Redis, credentials?) {
     '/gymFacilityHours',
     asyncify(async (req, res) => {
       try {
-        const gymFacilityHours = await db.gymFacilityHours(req.query.id, req.query.date);
-        const data = JSON.stringify(gymFacilityHours)
+        const gymFacilityHours = await db.gymFacilityHours(
+          req.query.id,
+          req.query.date
+        );
+        const data = JSON.stringify(gymFacilityHours);
         if (redis) {
           redis.setex(facilityHoursKey(req), 60 * 10, data);
         }
 
         res.status(200).send(data);
-      }
-      catch (err) {
+      } catch (err) {
         // TODO Send actual error codes based on errors. (this applies to all routes)
         res.status(400).send(err.message);
       }
     })
-  )
+  );
 
   return router;
 }
