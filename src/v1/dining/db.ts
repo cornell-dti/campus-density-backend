@@ -1,8 +1,8 @@
-import { ID_MAP, UNITNAME_MAP, DISPLAY_MAP } from "../mapping";
-import { DBQuery, DB } from "../db";
-import * as Util from "../util";
-import { DiningDocument } from "./models/dining";
-import { compareTwoStrings as stringSimilarity } from "string-similarity";
+import { compareTwoStrings as stringSimilarity } from 'string-similarity';
+import { ID_MAP, UNITNAME_MAP, DISPLAY_MAP } from '../mapping';
+import { DBQuery, DB } from '../db';
+import * as Util from '../util';
+import { DiningDocument } from './models/dining';
 
 export class DiningDB extends DB {
   /* eslint-disable no-useless-constructor */
@@ -17,49 +17,49 @@ export class DiningDB extends DB {
     menuQuery?: string
   ): Promise<DBQuery<string, DiningDocument>[]> {
     const { datastore } = this;
-    const diningQuery = datastore.createQuery("dining");
+    const diningQuery = datastore.createQuery('dining');
     let [entities] = await datastore.runQuery(diningQuery);
-    entities = entities.filter((e) => e.id in ID_MAP);
+    entities = entities.filter(e => e.id in ID_MAP);
     let result = entities;
     if (facilityId) {
       if (facilityId in ID_MAP) {
-        result = result.filter((e) => e.id === facilityId);
+        result = result.filter(e => e.id === facilityId);
       }
     }
     if (date) {
       let d = date;
       const lowercaseInput = date.toLowerCase();
       const dt = new Date();
-      if (lowercaseInput === "today") {
+      if (lowercaseInput === 'today') {
         d = dt.toISOString().slice(0, 10);
-      } else if (lowercaseInput === "tomorrow") {
+      } else if (lowercaseInput === 'tomorrow') {
         dt.setDate(dt.getDate() + 1);
         d = dt.toISOString().slice(0, 10);
-      } else if (lowercaseInput === "yesterday") {
+      } else if (lowercaseInput === 'yesterday') {
         dt.setDate(dt.getDate() - 1);
         d = dt.toISOString().slice(0, 10);
       }
       if (!Number.isNaN(Date.parse(d))) {
-        result = result.map((e) => {
+        result = result.map(e => {
           return {
             id: e.id,
-            weeksMenus: e.weeksMenus.filter((m) => m.date === d),
+            weeksMenus: e.weeksMenus.filter(m => m.date === d)
           };
         });
       } else {
-        throw new Error("Invalid Date");
+        throw new Error('Invalid Date');
       }
     }
     if (menuQuery) {
       const q = menuQuery.toLowerCase();
-      result = result.map((e) => {
+      result = result.map(e => {
         return {
           id: e.id,
-          weeksMenus: e.weeksMenus.map((weeksMenu) => {
+          weeksMenus: e.weeksMenus.map(weeksMenu => {
             return {
               date: weeksMenu.date,
               menus: weeksMenu.menus
-                .map((menus) => {
+                .map(menus => {
                   let menuSimilarity = 0;
                   return {
                     startTime: menus.startTime,
@@ -84,12 +84,12 @@ export class DiningDB extends DB {
                       }
                       return menuSimilarity > 0;
                     }),
-                    similarity: menuSimilarity,
+                    similarity: menuSimilarity
                   };
                 })
-                .filter(({ menu }) => menu.length),
+                .filter(({ menu }) => menu.length)
             };
-          }),
+          })
         };
       });
     }
