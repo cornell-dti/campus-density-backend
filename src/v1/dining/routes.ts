@@ -1,11 +1,12 @@
-import * as express from 'express';
+import * as express from "express";
 // eslint-disable-line @typescript-eslint/no-var-requires
-import { Redis } from 'ioredis';
-import { DiningDB } from './db';
-import asyncify from '../lib/asyncify';
-import { cache } from '../lib/cache';
+import { Redis } from "ioredis";
+import { DiningDB } from "./db";
+import asyncify from "../lib/asyncify";
+import { cache } from "../lib/cache";
+import { generateKey } from "../server";
 
-import Datastore = require('@google-cloud/datastore');
+import Datastore = require("@google-cloud/datastore");
 
 export default function routes(redis?: Redis, credentials?) {
   const datastore = new Datastore(credentials ? { credentials } : undefined);
@@ -13,16 +14,20 @@ export default function routes(redis?: Redis, credentials?) {
 
   const router = express.Router();
 
-  const menuKey = req =>
-    (req.query.facility ? `/menuData?${req.query.facility}` : `/menuData`);
-
+  const menuKey = (req) =>
+    generateKey(req, "/menuData", ["facility", "date", "q"]);
   router.get(
-    '/menuData',
+    "/menuData",
     cache(menuKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
+      console.log(generateKey(req, "/menuData", ["facility", "date", "q"]));
       try {
-        const menuList = await (db.getMenus(req.query.facility, req.query.date));
-        const data = JSON.stringify(menuList.map(v => v.result)[0]);
+        const menuList = await db.getMenus(
+          req.query.facility,
+          req.query.date,
+          req.query.q
+        );
+        const data = JSON.stringify(menuList.map((v) => v.result)[0]);
 
         if (redis) {
           redis.setex(`/menuData`, 60 * 10, data);

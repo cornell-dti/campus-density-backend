@@ -34,7 +34,7 @@
     "express": "^4.16.4",
     "express-jwt": "^5.3.1",
     "express-jwt-authz": "^1.0.0",
-    "firebase-admin": "^7.0.0",
+    "firebase-admin": "^9.1.0",
     "ioredis": "^4.16.0",
     "jwks-rsa": "^1.7.0",
     "moment": "^2.27.0",
@@ -46,7 +46,7 @@
     "uuid": "^3.4.0"
   },
   "devDependencies": {
-    "@google-cloud/nodejs-repo-tools": "2.3.5",
+    "@google-cloud/nodejs-repo-tools": "^3.3.0",
     "@types/moment-timezone": "^0.5.13",
     "@typescript-eslint/eslint-plugin": "^2.25.0",
     "@typescript-eslint/parser": "^2.25.0",
