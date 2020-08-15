@@ -2,6 +2,7 @@ import { ID_MAP, UNITNAME_MAP, DISPLAY_MAP } from "../mapping";
 import { DBQuery, DB } from "../db";
 import * as Util from "../util";
 import { DiningDocument } from "./models/dining";
+import { compareTwoStrings as stringSimilarity } from "string-similarity";
 
 export class DiningDB extends DB {
   /* eslint-disable no-useless-constructor */
@@ -50,6 +51,47 @@ export class DiningDB extends DB {
       }
     }
     if (menuQuery) {
+      const q = menuQuery.toLowerCase();
+      result = result.map((e) => {
+        return {
+          id: e.id,
+          weeksMenus: e.weeksMenus.map((weeksMenu) => {
+            return {
+              date: weeksMenu.date,
+              menus: weeksMenu.menus
+                .map((menus) => {
+                  let menuSimilarity = 0;
+                  return {
+                    startTime: menus.startTime,
+                    endTime: menus.endTime,
+                    description: menus.description,
+                    menu: menus.menu.filter(({ items }) => {
+                      for (const item of items) {
+                        const i = item.toLowerCase();
+                        const itemSimilarity = stringSimilarity(i, q);
+                        if (
+                          i.includes(q) ||
+                          (q.length < 4 && itemSimilarity > 0.4) ||
+                          (q.length < 8 && itemSimilarity > 0.5) ||
+                          (q.length < 16 && itemSimilarity > 0.6) ||
+                          itemSimilarity > 0.7
+                        ) {
+                          menuSimilarity = Math.max(
+                            menuSimilarity,
+                            itemSimilarity
+                          );
+                        }
+                      }
+                      return menuSimilarity > 0;
+                    }),
+                    similarity: menuSimilarity,
+                  };
+                })
+                .filter(({ menu }) => menu.length),
+            };
+          }),
+        };
+      });
     }
     return [DB.query(result)];
   }

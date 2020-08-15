@@ -20,7 +20,6 @@ export default function routes(redis?: Redis, credentials?) {
     "/menuData",
     cache(menuKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
-      console.log(generateKey(req, "/menuData", ["facility", "date", "q"]));
       try {
         const menuList = await db.getMenus(
           req.query.facility,
@@ -35,6 +34,7 @@ export default function routes(redis?: Redis, credentials?) {
 
         res.status(200).send(data);
       } catch (err) {
+        console.log(err);
         // TODO Send actual error codes based on errors. (this applies to all routes)
         res.status(400).send(err);
       }
