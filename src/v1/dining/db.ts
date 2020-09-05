@@ -43,7 +43,8 @@ export class DiningDB extends DB {
         result = result.map(e => {
           return {
             id: e.id,
-            weeksMenus: e.weeksMenus.filter(m => m.date === d)
+            weeksMenus: e.weeksMenus.filter(m => m.date === d),
+            location: e.location
           };
         });
       } else {
@@ -89,7 +90,8 @@ export class DiningDB extends DB {
                 })
                 .filter(({ menu }) => menu.length)
             };
-          })
+          }),
+          location: e.location
         };
       });
     }
