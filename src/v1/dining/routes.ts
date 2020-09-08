@@ -15,7 +15,7 @@ export default function routes(redis?: Redis, credentials?) {
   const router = express.Router();
 
   const menuKey = req =>
-    generateKey(req, '/menuData', ['facility', 'date', 'q']);
+    generateKey(req, '/menuData', ['facility', 'startDate', 'endDate', 'q']);
   router.get(
     '/menuData',
     cache(menuKey, redis),
@@ -23,7 +23,8 @@ export default function routes(redis?: Redis, credentials?) {
       try {
         const menuList = await db.getMenus(
           req.query.facility,
-          req.query.date,
+          req.query.startDate,
+          req.query.endDate,
           req.query.q
         );
         const data = JSON.stringify(menuList.map(v => v.result)[0]);
