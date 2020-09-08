@@ -4,6 +4,7 @@ import { Redis } from 'ioredis';
 import { DiningDB } from './db';
 import asyncify from '../lib/asyncify';
 import { cache } from '../lib/cache';
+import { generateKey } from '../server';
 
 import Datastore = require('@google-cloud/datastore');
 
@@ -14,14 +15,18 @@ export default function routes(redis?: Redis, credentials?) {
   const router = express.Router();
 
   const menuKey = req =>
-    (req.query.facility ? `/menuData?${req.query.facility}` : `/menuData`);
-
+    generateKey(req, '/menuData', ['facility', 'startDate', 'endDate', 'q']);
   router.get(
     '/menuData',
     cache(menuKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
-        const menuList = await (db.getMenus(req.query.facility, req.query.date));
+        const menuList = await db.getMenus(
+          req.query.facility,
+          req.query.startDate,
+          req.query.endDate,
+          req.query.q
+        );
         const data = JSON.stringify(menuList.map(v => v.result)[0]);
 
         if (redis) {
@@ -30,6 +35,7 @@ export default function routes(redis?: Redis, credentials?) {
 
         res.status(200).send(data);
       } catch (err) {
+        console.log(err);
         // TODO Send actual error codes based on errors. (this applies to all routes)
         res.status(400).send(err);
       }
