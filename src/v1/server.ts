@@ -22,7 +22,7 @@ export function generateKey(
     .filter(q => !!q.value)
     .map(({ key, value }) => `${key}=${value}`)
     .join('&');
-  return route + (qs && `?${  qs}`);
+  return route + (qs && `?${qs}`);
 }
 
 export default function routes(redis?: Redis, credentials?) {
