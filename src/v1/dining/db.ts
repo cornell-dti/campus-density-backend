@@ -1,12 +1,11 @@
-import { compareTwoStrings as stringSimilarity } from "string-similarity";
-import { ID_MAP, UNITNAME_MAP, DISPLAY_MAP } from "../mapping";
-import { DBQuery, DB } from "../db";
-import * as Util from "../util";
-import { DiningDocument } from "./models/dining";
+import { compareTwoStrings as stringSimilarity } from 'string-similarity';
+import * as moment from 'moment-timezone';
+import { ID_MAP, UNITNAME_MAP, DISPLAY_MAP } from '../mapping';
+import { DBQuery, DB } from '../db';
+import * as Util from '../util';
+import { DiningDocument } from './models/dining';
 
-import * as moment from "moment-timezone";
-
-moment.tz.setDefault("America/New_York");
+moment.tz.setDefault('America/New_York');
 
 export class DiningDB extends DB {
   /* eslint-disable no-useless-constructor */
@@ -22,13 +21,13 @@ export class DiningDB extends DB {
     menuQuery?: string
   ): Promise<DBQuery<string, DiningDocument>[]> {
     const { datastore } = this;
-    const diningQuery = datastore.createQuery("dining");
+    const diningQuery = datastore.createQuery('dining');
     let [entities] = await datastore.runQuery(diningQuery);
-    entities = entities.filter((e) => e.id in ID_MAP);
+    entities = entities.filter(e => e.id in ID_MAP);
     let result = entities;
     if (facilityId) {
       if (facilityId in ID_MAP) {
-        result = result.filter((e) => e.id === facilityId);
+        result = result.filter(e => e.id === facilityId);
       }
     }
     if (startDate || endDate) {
@@ -38,32 +37,32 @@ export class DiningDB extends DB {
         (startMoment && startMoment.isValid()) ||
         (endMoment && endMoment.isValid())
       ) {
-        result = result.map((e) => {
+        result = result.map(e => {
           return {
             id: e.id,
-            weeksMenus: e.weeksMenus.filter((m) => {
+            weeksMenus: e.weeksMenus.filter(m => {
               const d = moment(m.date);
               const start = startMoment || moment();
-              const end = endMoment || moment().add(7, "d");
+              const end = endMoment || moment().add(7, 'd');
               return start <= d && d <= end;
             }),
-            location: e.location,
+            location: e.location
           };
         });
       } else {
-        throw new Error("Invalid Date(s)");
+        throw new Error('Invalid Date(s)');
       }
     }
     if (menuQuery) {
       const q = menuQuery.toLowerCase();
-      result = result.map((e) => {
+      result = result.map(e => {
         return {
           id: e.id,
-          weeksMenus: e.weeksMenus.map((weeksMenu) => {
+          weeksMenus: e.weeksMenus.map(weeksMenu => {
             return {
               date: weeksMenu.date,
               menus: weeksMenu.menus
-                .map((menus) => {
+                .map(menus => {
                   let menuSimilarity = 0;
                   return {
                     startTime: menus.startTime,
@@ -88,13 +87,13 @@ export class DiningDB extends DB {
                       }
                       return menuSimilarity > 0;
                     }),
-                    similarity: menuSimilarity,
+                    similarity: menuSimilarity
                   };
                 })
-                .filter(({ menu }) => menu.length),
+                .filter(({ menu }) => menu.length)
             };
           }),
-          location: e.location,
+          location: e.location
         };
       });
     }
