@@ -18,6 +18,7 @@
     "start": "node build/server.js",
     "start-no-redis": "node build/server.js --no-redis",
     "dev": "npm run build && npm run start-no-redis",
+    "dev-redis": "npm run build && npm run start",
     "lint": "eslint . --ext .js --ext .ts"
   },
   "dependencies": {
