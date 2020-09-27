@@ -67,7 +67,7 @@ export default function routes(redis?: Redis, credentials?) {
         const data = JSON.stringify(facilityInfo.map((v) => v.result));
 
         if (redis) {
-          redis.setex(facilityInfoKey(req), 30, data);
+          redis.setex(facilityInfoKey(req), 60 * 10, data);
         }
 
         res.status(200).send(data);
@@ -78,11 +78,11 @@ export default function routes(redis?: Redis, credentials?) {
   );
 
   const facilityHoursKey = (req) =>
-    generateKey(req, "/facilityHours", ["id, startDate, endDate"]);
+    generateKey(req, "/facilityHours", ["id", "startDate", "endDate"]);
   router.get(
     "/facilityHours",
     cache(facilityHoursKey, redis),
-    asyncify(async (req, res) => {
+    asyncify(async (req: express.Request, res: express.Response) => {
       try {
         const facilityHours = await db.facilityHours(
           req.query.id,
