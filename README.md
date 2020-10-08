@@ -40,5 +40,27 @@ Check out our apiary [here](https://campusdensity.docs.apiary.io/#).
 
 More documentation to follow.
 
+
+## Contributors
+**School Year**
+### **2020-2021**
+
+ * **Yvonne Chan** - Product Manager 
+ * **Andrew Gao** - Product Manager
+ * **Kaushik Ravikumar** - Technical Project Manager
+ 
+ * **Ansh Godha** - iOS Developer
+ * **Mihikaa Goenka** - iOS Developer
+ * **Changyuan Lin** - iOS Developer
+ * **Toby Ko** - Android Developer
+ * **Jessica Feng** - Backend Developer
+ * **Vaishnavi Gupta** - Backend Developer
+ 
+ * **Buma Gana** - Designer
+ * **Katherine Go** - Designer
+ * **Rebecca Fu** - Designer 
+ * **Isabella Zhou** - Designer
+
+
 We are a part of the Flux team within **Cornell Design & Tech Initiative**. For more information, see our website [here](https://cornelldti.org/).
 <img src="https://raw.githubusercontent.com/cornell-dti/design/master/Branding/Wordmark/Dark%20Text/Transparent/Wordmark-Dark%20Text-Transparent%403x.png">
