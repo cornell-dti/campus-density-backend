@@ -62,5 +62,39 @@ More documentation to follow.
  * **Isabella Zhou** - Designer
 
 
+ ### **2019-2020**
+
+ * **Yvonne Chan** - Product Manager
+ * **Ashneel Das** - Technical Project Manager
+ 
+ * **Ansh Godha** - iOS Developer
+ * **Mihikaa Goenka** - iOS Developer
+ * **Changyuan Lin** - iOS Developer
+ * **Kaushik Ravikumar** - Android Developer
+ * **Andrew Gao** - Android Developer
+ * **Benjamin Shen** - Backend Developer
+ 
+ * **Kaitlyn Son** - Designer
+ * **Chelsea Wang** - Designer
+ * **Katherine Go** - Designer
+ * **Isabella Zhou** - Designer
+
+### **2018-2019**
+
+ * **Neha Rao** - Product Manager
+ * **Andrew Xiao** - Product Manager
+
+ * **Matthew Coufal** - iOS Developer
+ * **Kaushik Ravikumar** - Android Developer
+ * **Andrew Gao** - Android Developer
+ * **Raymone Radi** - Backend/iOS Developer
+ * **Evan Welsh** - Backend Developer
+ * **Ashneel Das** - Backend Developer
+ 
+ * **Kaitlyn Son** - Designer
+ * **April Ye** - Designer
+ * **Kathy Wang** - Designer
+
+
 We are a part of the Flux team within **Cornell Design & Tech Initiative**. For more information, see our website [here](https://cornelldti.org/).
 <img src="https://raw.githubusercontent.com/cornell-dti/design/master/Branding/Wordmark/Dark%20Text/Transparent/Wordmark-Dark%20Text-Transparent%403x.png">
