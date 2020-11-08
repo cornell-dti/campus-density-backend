@@ -4,12 +4,13 @@ import { firebaseDB } from '../auth';
 import { Feedback } from './models/feedback'
 
 export class FeedbackDB {
-  // db function to GET feedback
 
-  async feedbackListLocation(location: string): Promise<{
-    id: string,
-    data: Feedback[]
-  }[]> {
+  // GET feedback of specific location
+  async feedbackListLocation(location: string):
+    Promise<{
+      id: string,
+      data: Feedback[]
+    }[]> {
     const data = [];
     if (location) {
       const docs = await firebaseDB.collection('feedback').doc(location).collection('feedback').get()
@@ -25,6 +26,7 @@ export class FeedbackDB {
     return data;
   }
 
+  // GET feedback of all locations
   async feedbackList(feedbackListType, location?: string) {
     if (location) {
       return this.feedbackListLocation(location);
@@ -39,30 +41,12 @@ export class FeedbackDB {
           }
         })
       );
-    Promise.all(loc).then(() => {
-      console.log(data);
+    return Promise.all(loc).then(() => {
       return data;
     });
-    // average difference for predicted and actual value
-    // aggregate data
-    // review Vaish's PR
-
-
-    // const loc = Object.keys(feedbackListType).map(async location => {
-    //   try {
-    //     const d = await this.feedbackListLocation(location);
-    //     if (d.length != 0) {
-    //       data.push({ eatery: location, entries: d });
-    //     }
-    //   }
-    //   catch (err) {
-    //     console.log(err);
-    //   }
-    // });
-
   }
 
-  // db function to POST feedback
+  // POST feedback
   async addFeedback(feedback: Feedback) {
     const location = feedback.campuslocation;
     const time = new Date().getTime();
@@ -75,7 +59,7 @@ export class FeedbackDB {
       dineIn: feedback.dineIn,
       startDine: feedback.startDine,
       endDine: feedback.endDine,
-      campuslocation: feedback.campuslocation,
+      campuslocation: location,
       comments: feedback.comments
     }
     await firebaseDB.collection('feedback').doc(location).collection('feedback').add(fb);
