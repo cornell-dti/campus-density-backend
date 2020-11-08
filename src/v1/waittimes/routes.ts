@@ -19,9 +19,7 @@ export default function routes(redis?: Redis, credentials?) {
     cache(key, redis),
     asyncify(async (req, res) => {
       try {
-        const query = await (req.query.id
-          ? db.waitTime(req.query.id)
-          : db.waitTime());
+        const query = await (db.waitTime(req.query.id));
 
         if (query) {
           const data = JSON.stringify(query);
