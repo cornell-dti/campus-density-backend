@@ -1,13 +1,13 @@
 import * as express from 'express';
 import asyncify from '../lib/asyncify';
 import { FeedbackDB } from './db';
-import { firebaseDB } from "../auth";
 import { ID_MAP, DISPLAY_MAP, GYM_DISPLAY_MAP } from '../mapping';
-// import { Redis } from 'ioredis';
+import { resolveSoa } from 'dns';
+import { request } from 'http';
+
 
 export default function routes() {
-  // const firestore = new Firestore(credentials ? { credentials } : undefined);
-  const db = FeedbackDB;
+  const db = new FeedbackDB();
   const router = express.Router()
 
   // return feedback objects
@@ -23,13 +23,17 @@ export default function routes() {
     })
   );
 
-  router.post('/ENDPOINT_NAME',
-    asyncify(async (req, res) => {
+  router.post('/addFeedback',
+    asyncify(async (req: express.Request, res: express.Response) => {
       try {
-        // TODO: db operation
+        let data = req.body;
+        await db.addFeedback(data);
+        res.status(200).send(data);
       } catch (err) {
-
+        res.status(400).send(err);
       }
     })
   );
+
+  return router
 }

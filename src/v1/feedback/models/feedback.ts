@@ -13,7 +13,7 @@ import { CampusLocation } from '../../models/campus';
 })
 export class Feedback extends JSONObject {
   id: string;
-  timeSubmitted: number;
+  timeSubmitted: Date;
   predicted: number;
   observed: number;
   waitTime: number;
@@ -23,3 +23,4 @@ export class Feedback extends JSONObject {
   @JSONEnum(CampusLocation)
   campuslocation: CampusLocation;
 }
+
