@@ -1,5 +1,3 @@
-import { resolve } from 'dns';
-import * as moment from 'moment-timezone';
 import { firebaseDB } from '../auth';
 import { Feedback } from './models/feedback'
 
@@ -36,7 +34,7 @@ export class FeedbackDB {
     const loc = Object.keys(feedbackListType)
       .map(location => this.feedbackListLocation(location)
         .then(obj => {
-          if (obj.length != 0) {
+          if (obj.length !== 0) {
             data.push({ eatery: location, data: obj });
           }
         })

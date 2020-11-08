@@ -10,7 +10,7 @@ export default function routes() {
   router.get('/feedbackList',
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
-        const location = req.query.location;
+        const { location } = req.query.location;
         const feedbackList = JSON.stringify(await db.feedbackList(DISPLAY_MAP, location));
         res.status(200).send(feedbackList);
       } catch (err) {
@@ -22,7 +22,7 @@ export default function routes() {
   router.post('/addFeedback',
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
-        let data = req.body;
+        const data = req.body;
         await db.addFeedback(data);
         res.status(200).send(data);
       } catch (err) {
