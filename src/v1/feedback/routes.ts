@@ -14,9 +14,17 @@ export default function routes() {
   router.get('/feedbackList',
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
-        const feedbackList = await db.feedbackList(DISPLAY_MAP);
-        const data = JSON.stringify(feedbackList.map(v => v.result));
-        res.status(200).send(data);
+        const feedbackList = JSON.stringify(await db.feedbackList(DISPLAY_MAP));
+        // const data = JSON.stringify(feedbackList.map(obj => obj.id));
+        // console.log(data);
+        console.log(feedbackList);
+        res.status(200).send(feedbackList);
+
+        // await db.feedbackList(DISPLAY_MAP, "becker").then(fbList => {
+        //   const data = JSON.stringify(fbList);
+        //   console.log(data);
+        //   res.status(200).send(data);
+        // });
       } catch (err) {
         res.status(400).send(err);
       }
