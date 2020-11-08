@@ -17,7 +17,7 @@ export class FeedbackDB {
       try {
         console.log(location);
         const query = await firebaseDB.collection('feedback').doc(location).collection('feedback').get();
-        console.log(query);
+        console.log("QUERY: " + query);
         for (const doc of query.docs) {
           const docData = doc.data();
           data.push(docData);
@@ -45,6 +45,10 @@ export class FeedbackDB {
   //TODO: db function to POST feedback
   async addFeedback(feedback: Feedback) {
     const location = feedback.campuslocation;
+    // time submitted
+    // id
+    const time = new Date().getTime();
+    // const id = feedback.key;
     feedback.timeSubmitted = new Date();
     await firebaseDB.collection('feedback').doc(location).collection('feedback').add(feedback);
   }
