@@ -22,8 +22,8 @@ export class FeedbackDB {
           console.log(err);
           return err;
         });
-      return data;
     }
+    return data;
   }
 
   // GET feedback of all locations
