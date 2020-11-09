@@ -1,4 +1,4 @@
-import { JSONParsable, JSONObject, JSONEnum } from '../../lib/json';
+import { JSONParsable, JSONObject } from '../../lib/json';
 
 @JSONParsable({
   timeSubmitted: 'number',

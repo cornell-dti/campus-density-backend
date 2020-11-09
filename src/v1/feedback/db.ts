@@ -12,16 +12,15 @@ export class FeedbackDB {
     }[]> {
     const data = [];
     if (location && location in DISPLAY_MAP) {
-      const docs = await firebaseDB.collection('feedback').doc(location).collection('feedback').get()
-        .then(doc => {
-          doc.forEach(d => {
-            data.push({ id: d.id, data: d.data() });
-          })
-        })
-        .catch(err => {
-          console.log(err);
-          return err;
+      try {
+        const docs = await firebaseDB.collection('feedback').doc(location).collection('feedback').get();
+        docs.forEach(doc => {
+          data.push({ id: doc.id, data: doc.data() });
         });
+      } catch(err) {
+        console.log(err);
+        return err;
+      }
     }
     return data;
   }
@@ -37,9 +36,8 @@ export class FeedbackDB {
           }
         })
       );
-    return Promise.all(loc).then(() => {
-      return data;
-    });
+    await Promise.all(loc);
+    return data;
   }
 
   // POST feedback
