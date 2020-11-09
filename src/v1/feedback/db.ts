@@ -1,5 +1,6 @@
 import { firebaseDB } from '../auth';
 import { Feedback } from './models/feedback'
+import { DISPLAY_MAP } from '../mapping';
 
 export class FeedbackDB {
 
@@ -10,7 +11,7 @@ export class FeedbackDB {
       data: Feedback[]
     }[]> {
     const data = [];
-    if (location) {
+    if (location && location in DISPLAY_MAP) {
       const docs = await firebaseDB.collection('feedback').doc(location).collection('feedback').get()
         .then(doc => {
           doc.forEach(d => {
@@ -19,23 +20,20 @@ export class FeedbackDB {
         })
         .catch(err => {
           console.log(err);
+          return err;
         });
+      return data;
     }
-    return data;
   }
 
   // GET feedback of all locations
-  async feedbackList(feedbackListType, location?: string) {
-    if (location) {
-      return this.feedbackListLocation(location);
-    }
+  async feedbackList(feedbackListType) {
     const data = [];
-
     const loc = Object.keys(feedbackListType)
       .map(location => this.feedbackListLocation(location)
         .then(obj => {
           if (obj.length !== 0) {
-            data.push({ eatery: location, data: obj });
+            data.push({ eatery: location, size: obj.length, data: obj });
           }
         })
       );
@@ -62,5 +60,4 @@ export class FeedbackDB {
     }
     await firebaseDB.collection('feedback').doc(location).collection('feedback').add(fb);
   }
-
 }
