@@ -31,11 +31,11 @@ export default function routes(redis?: Redis, credentials?) {
           res.status(200).send(data);
         }
         else {
-          res.status(400).send("No such facility id.");
+          res.status(400).send({ success: false, error: "No such facility id." });
         }
       } catch (err) {
         console.log(err);
-        res.status(400).send(err);
+        res.status(400).send({ success: false, error: err.message });
       }
     })
   );
