@@ -1,9 +1,11 @@
 import { firebaseDB } from '../auth';
 import { Feedback } from './models/feedback'
 import { DISPLAY_MAP } from '../mapping';
+import { parse } from 'path';
 
 
 export class FeedbackDB {
+  num_to_day = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
   // get hour docs
   async getHourFeedback(dayRef: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>, hour: string) {
@@ -41,7 +43,6 @@ export class FeedbackDB {
   }
 
   // GET feedback
-
   async getFeedback(
     eatery?: string,
     day?: string,
@@ -50,17 +51,24 @@ export class FeedbackDB {
   ) {
     const ref = firebaseDB.collection('feedbackData');
 
-    if (eatery) {
+    if (eatery && DISPLAY_MAP.hasOwnProperty(eatery)) {
       const eateryRef = ref.doc(eatery);
 
-      if (day) {
+      if (day && this.num_to_day.includes(day)) {
         const dayRef = eateryRef.collection(day);
-        if (hour) {
+
+        if (hour && parseInt(hour) >= 0 && parseInt(hour) < 24) {
           // get data at specific wait time
           const hourRef = dayRef.doc(hour);
+
           if (predictedWait && predictedWait != "0") {
             const predict = await hourRef.collection('modelPrediction').doc(predictedWait).get();
-            return { predictedWait: predict.id, data: predict.data() };
+            if (predict.data()) {
+              return { predictedWait: predict.id, data: predict.data() };
+            }
+            else {
+              return [];
+            }
           }
           // get data at all predicted wait times (on specific hour)
           return this.getHourFeedback(dayRef, hour);
@@ -89,14 +97,13 @@ export class FeedbackDB {
 
   // initialize docs in firebase
   async createDocs() {
-    const num_to_day = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
     for (const eatery in DISPLAY_MAP) {
       const eRef = firebaseDB.collection('feedbackData').doc(eatery);
       eRef.set({});
-      for (const day in num_to_day) {
+      for (const day in this.num_to_day) {
         for (var hour = 0; hour < 24; hour++) {
-          const eatRef = eRef.collection(num_to_day[day]).doc(hour.toString());
+          const eatRef = eRef.collection(this.num_to_day[day]).doc(hour.toString());
           eatRef.set({});
           const eateryRef = eatRef.collection('modelPrediction').doc('0');
           eateryRef.set(
@@ -114,9 +121,8 @@ export class FeedbackDB {
   // POST feedback
   async addFeedback(feedback: Feedback) {
 
-    const num_to_day = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
     const time = new Date();
-    const day = num_to_day[time.getDay()];
+    const day = this.num_to_day[time.getDay()];
     const hour = time.getHours();
 
     const eatery = feedback.eatery;
