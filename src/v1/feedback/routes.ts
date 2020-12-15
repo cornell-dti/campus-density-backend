@@ -2,7 +2,6 @@ import * as express from 'express';
 import { Redis } from "ioredis";
 import asyncify from '../lib/asyncify';
 import { FeedbackDB } from './db';
-import { DISPLAY_MAP } from '../mapping';
 import { cache } from "../lib/cache";
 import { generateKey } from "../server";
 
@@ -11,26 +10,32 @@ export default function routes(redis?: Redis) {
   const db = new FeedbackDB();
   const router = express.Router();
 
-  const feedbackListKey = (req) => generateKey(req, "/feedbackList", ["location"]);
-  router.get('/feedbackList',
+  const feedbackListKey = (req) => generateKey(req, "/", ["eatery", "day", "hour", "predictedWait"]);
+  router.get('/feedbackData',
     cache(feedbackListKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
-        const list = await (req.query.location ? db.feedbackListLocation(req.query.location) : db.feedbackList(DISPLAY_MAP));
+        const list = await db.getFeedback(
+          req.query.eatery,
+          req.query.day,
+          req.query.hour,
+          req.query.predictedWait);
+
+        const data = JSON.stringify(list);
 
         if (redis) {
-          redis.setex(`/feedbackList`, 60_10, list);
+          redis.setex(`/feedbackData`, 60 * 10, data);
         }
 
         res.status(200).send({
           success: true,
-          size: list.length,
           data: list
         });
+
       } catch (err) {
         res.status(404).send({
           success: false,
-          message: "Invalid dining location",
+          message: "Invalid eatery",
         });
       }
     })
@@ -46,7 +51,7 @@ export default function routes(redis?: Redis) {
         .catch(err => {
           res.status(400).send({
             success: false,
-            message: "Unable to create valid feedback. Invalid or missing fields."
+            message: "Unable to create valid feedback."
           });
         });
     })

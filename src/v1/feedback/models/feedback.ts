@@ -1,26 +1,15 @@
 import { JSONParsable, JSONObject, JSONEnum } from '../../lib/json';
 
 @JSONParsable({
-  timeSubmitted: 'number',
-  isAccurate: 'boolean',
-  predicted: 'number',
-  observed: 'number',
-  waitTime: 'number',
-  dineIn: 'boolean',
-  startDine: 'number',
-  endDine: 'number',
-  comments: 'string'
+  eatery: 'string',
+  predictedWait: 'number',
+  observedWait: 'number',
+  comment: 'string'
 })
 export class Feedback extends JSONObject {
-  timeSubmitted: Date;
-  isAccurate: boolean;
-  predicted: number;
-  observed: number;
-  waitTime: number;
-  dineIn: boolean;
-  startDine: number;
-  endDine: number;
-  campuslocation: string;
-  comments: string;
+  eatery: string;
+  predictedWait: number;
+  observedWait: number;
+  comment?: string;
 }
 

@@ -2,62 +2,170 @@ import { firebaseDB } from '../auth';
 import { Feedback } from './models/feedback'
 import { DISPLAY_MAP } from '../mapping';
 
+
 export class FeedbackDB {
 
-  // GET feedback of specific location
-  async feedbackListLocation(location: string):
-    Promise<{
-      id: string,
-      data: Feedback[]
-    }[]> {
-    const data = [];
-    if (location && location in DISPLAY_MAP) {
-      const docs = await firebaseDB.collection('feedback').doc(location).collection('feedback').get()
-        .then(doc => {
-          doc.forEach(d => {
-            data.push({ id: d.id, data: d.data() });
-          })
-        })
-        .catch(err => {
-          console.log(err);
-          return err;
-        });
-    }
-    return data;
+  // get hour docs
+  async getHourFeedback(dayRef: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>, hour: string) {
+    const hourRef = await dayRef.doc(hour).collection('modelPrediction').get();
+    const predicts = hourRef.docs
+      .filter(doc => doc.id != "0")
+      .map(doc => ({ predictedWait: doc.id, data: doc.data() }));
+    return predicts;
   }
 
-  // GET feedback of all locations
-  async feedbackList(feedbackListType) {
-    const data = [];
-    const loc = Object.keys(feedbackListType)
-      .map(location => this.feedbackListLocation(location)
-        .then(obj => {
-          if (obj.length !== 0) {
-            data.push({ eatery: location, size: obj.length, data: obj });
+  // get day collections
+  async getDayFeedback(eateryRef: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>, day: string) {
+
+    const dayRef = eateryRef.collection(day);
+    const hours = (await dayRef.get()).docs;
+    const data = await Promise.all(hours.map(async doc => {
+      const docID = doc.id;
+      const docData = await this.getHourFeedback(dayRef, docID);
+      return ({ hour: docID, data: docData })
+    }));
+    return data.filter(doc => doc.data.length > 0);
+
+  }
+
+  // get eatery docs
+  async getEateryFeedback(ref: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>, eatery: string) {
+    const eateryRef = ref.doc(eatery);
+    const days = await eateryRef.listCollections();
+    const data = await Promise.all(days.map(async day => {
+      const dayID = day.id;
+      const dayData = await this.getDayFeedback(eateryRef, dayID);
+      return ({ day: dayID, data: dayData })
+    }));
+    return data.filter(doc => doc.data.length > 0);
+  }
+
+  // GET feedback
+
+  async getFeedback(
+    eatery?: string,
+    day?: string,
+    hour?: string,
+    predictedWait?: string,
+  ) {
+    const ref = firebaseDB.collection('feedbackData');
+
+    if (eatery) {
+      const eateryRef = ref.doc(eatery);
+
+      if (day) {
+        const dayRef = eateryRef.collection(day);
+        if (hour) {
+          // get data at specific wait time
+          const hourRef = dayRef.doc(hour);
+          if (predictedWait && predictedWait != "0") {
+            const predict = await hourRef.collection('modelPrediction').doc(predictedWait).get();
+            return { predictedWait: predict.id, data: predict.data() };
           }
-        })
-      );
-    return Promise.all(loc).then(() => {
-      return data;
-    });
+          // get data at all predicted wait times (on specific hour)
+          return this.getHourFeedback(dayRef, hour);
+        }
+        else {
+          // get data at all hours (on specific day)
+          return this.getDayFeedback(eateryRef, day);
+        }
+      }
+      else {
+        // get data at all days (on specific eatery)
+        return this.getEateryFeedback(ref, eatery);
+      }
+    }
+    else {
+      // get data at all eateries
+      const eateries = (await ref.get()).docs;
+      const data = await Promise.all(eateries.map(async doc => {
+        const docID = doc.id;
+        const docData = await this.getEateryFeedback(ref, docID);
+        return ({ id: docID, data: docData });
+      }));
+      return data.filter(doc => doc.data.length > 0);
+    }
+  }
+
+  // initialize docs in firebase
+  async createDocs() {
+    const num_to_day = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
+    for (const eatery in DISPLAY_MAP) {
+      const eRef = firebaseDB.collection('feedbackData').doc(eatery);
+      eRef.set({});
+      for (const day in num_to_day) {
+        for (var hour = 0; hour < 24; hour++) {
+          const eatRef = eRef.collection(num_to_day[day]).doc(hour.toString());
+          eatRef.set({});
+          const eateryRef = eatRef.collection('modelPrediction').doc('0');
+          eateryRef.set(
+            {
+              observedWait: 0,
+              count: 0,
+              comments: []
+            });
+        }
+      }
+    }
+
   }
 
   // POST feedback
   async addFeedback(feedback: Feedback) {
-    const location = feedback.campuslocation;
-    const time = new Date().getTime();
-    const fb = {
-      timeSubmitted: time,
-      isAccurate: feedback.isAccurate,
-      predicted: feedback.predicted,
-      observed: feedback.observed,
-      waitTime: feedback.waitTime,
-      dineIn: feedback.dineIn,
-      startDine: feedback.startDine,
-      endDine: feedback.endDine,
-      campuslocation: location,
-      comments: feedback.comments
-    }
-    await firebaseDB.collection('feedback').doc(location).collection('feedback').add(fb);
+
+    const num_to_day = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    const time = new Date();
+    const day = num_to_day[time.getDay()];
+    const hour = time.getHours();
+
+    const eatery = feedback.eatery;
+    const predictedWait = feedback.predictedWait;
+    const observedWait = feedback.observedWait;
+    const comment = feedback.comment;
+
+    var old_count = 0;
+    var old_avg = observedWait;
+
+    // initialized fields
+    var observedWait_avg = observedWait;
+    var count = 1;
+    var comments = [];
+
+    const eateryRef = firebaseDB
+      .collection('feedbackData')
+      .doc((eatery))
+      .collection(day)
+      .doc(hour.toString())
+      .collection('modelPrediction')
+      .doc(predictedWait.toString());
+
+    // update based on current data
+    // get current data
+    await eateryRef.get()
+      .then(res => {
+        // if doc found, get data
+        old_count = res.data().count;
+        old_avg = res.data().observedWait;
+        comments = res.data().comments;
+
+        observedWait_avg = (old_avg * old_count + observedWait) / (old_count + 1);
+        count = old_count + 1;
+      })
+      .catch(err => {
+        // else, set initial data
+      })
+      .then(() => {
+        // check for validity of comment
+        if (comment) {
+          comments.push(comment);
+        }
+        eateryRef.set({
+          observedWait: observedWait_avg,
+          count: count,
+          comments: comments
+        });
+      })
+
   }
 }
