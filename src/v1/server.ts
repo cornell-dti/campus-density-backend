@@ -6,6 +6,7 @@ import facilityRoutes from './facilities/routes';
 import diningRoutes from './dining/routes';
 import feedbackRoutes from './feedback/routes';
 import historicalRoutes from './history';
+import Auth, { authenticated } from './auth';
 
 export function generateKey(
   req: express.Request,
