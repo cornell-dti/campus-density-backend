@@ -1,16 +1,16 @@
 import * as express from 'express';
-import { Redis } from "ioredis";
+import { Redis } from 'ioredis';
 import asyncify from '../lib/asyncify';
 import { FeedbackDB } from './db';
-import { cache } from "../lib/cache";
-import { generateKey } from "../server";
+import { cache } from '../lib/cache';
+import { generateKey } from '../server';
 
 
 export default function routes(redis?: Redis) {
   const db = new FeedbackDB();
   const router = express.Router();
 
-  const feedbackListKey = (req) => generateKey(req, "/", ["eatery", "day", "hour", "predictedWait"]);
+  const feedbackListKey = req => generateKey(req, '/', ['eatery', 'day', 'hour', 'predictedWait']);
   router.get('/feedbackData',
     cache(feedbackListKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
@@ -35,7 +35,7 @@ export default function routes(redis?: Redis) {
       } catch (err) {
         res.status(404).send({
           success: false,
-          message: "Invalid eatery",
+          message: 'Invalid eatery'
         });
       }
     })
@@ -51,7 +51,7 @@ export default function routes(redis?: Redis) {
         .catch(err => {
           res.status(400).send({
             success: false,
-            message: "Unable to create valid feedback."
+            message: 'Unable to create valid feedback.'
           });
         });
     })

@@ -15,20 +15,20 @@
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import * as express from "express";
-import { Redis } from "ioredis";
-import asyncify from "../lib/asyncify";
-import { DensityDB } from "./db";
-import { cache } from "../lib/cache";
+import * as express from 'express';
+import { Redis } from 'ioredis';
+import asyncify from '../lib/asyncify';
+import { DensityDB } from './db';
+import { cache } from '../lib/cache';
 import {
   getAverageSpreadsheetHistoricalData,
   updateLiveAverages,
-  getHistoricalAverages,
-} from "../data/gymHistoricalAnalysis";
-import { generateKey } from "../server";
+  getHistoricalAverages
+} from '../data/gymHistoricalAnalysis';
+import { generateKey } from '../server';
 
-import Datastore = require("@google-cloud/datastore");
-import bodyParser = require("body-parser");
+import Datastore = require('@google-cloud/datastore');
+import bodyParser = require('body-parser');
 
 export default function routes(redis?: Redis, credentials?) {
   const datastore = new Datastore(credentials ? { credentials } : undefined);
@@ -37,16 +37,16 @@ export default function routes(redis?: Redis, credentials?) {
   const router = express.Router();
   router.use(bodyParser.json());
 
-  const key = (req) => generateKey(req, "/howDense", ["id"]);
+  const key = req => generateKey(req, '/howDense', ['id']);
   router.get(
-    "/howDense",
+    '/howDense',
     cache(key, redis),
     asyncify(async (req, res) => {
       try {
         const query = await (req.query.id
           ? db.howDense(req.query.id)
           : db.howDense());
-        const data = JSON.stringify(query.map((v) => v.result));
+        const data = JSON.stringify(query.map(v => v.result));
 
         if (redis) {
           redis.setex(key(req), 60, data);
@@ -60,7 +60,7 @@ export default function routes(redis?: Redis, credentials?) {
   );
 
   router.get(
-    "/gymHowDense",
+    '/gymHowDense',
     asyncify(async (req, res) => {
       try {
         const queryResult = await (req.query.id
@@ -84,11 +84,11 @@ export default function routes(redis?: Redis, credentials?) {
    * }
    */
   router.post(
-    "/updateLiveAverages",
+    '/updateLiveAverages',
     asyncify(async (req, res) => {
       try {
         await updateLiveAverages(req.query.id, req.query.day, req.body);
-        res.status(200).send({ success: "true" });
+        res.status(200).send({ success: 'true' });
       } catch (err) {
         res.status(400).send({ success: false, error: err.message });
       }
@@ -96,11 +96,11 @@ export default function routes(redis?: Redis, credentials?) {
   );
 
   router.get(
-    "/getGymAverages",
+    '/getGymAverages',
     asyncify(async (req, res) => {
       try {
-        const id = req.query.id || "";
-        const day = req.query.day || "";
+        const id = req.query.id || '';
+        const day = req.query.day || '';
         const result = await getHistoricalAverages(id, day);
         res.status(200).send(result);
       } catch (err) {

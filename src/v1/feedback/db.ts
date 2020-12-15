@@ -1,17 +1,16 @@
 import { firebaseDB } from '../auth';
 import { Feedback } from './models/feedback'
 import { DISPLAY_MAP } from '../mapping';
-import { parse } from 'path';
 
 
 export class FeedbackDB {
-  num_to_day = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  num_to_day = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
   // get hour docs
   async getHourFeedback(dayRef: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>, hour: string) {
     const hourRef = await dayRef.doc(hour).collection('modelPrediction').get();
     const predicts = hourRef.docs
-      .filter(doc => doc.id != "0")
+      .filter(doc => doc.id !== '0')
       .map(doc => ({ predictedWait: doc.id, data: doc.data() }));
     return predicts;
   }
@@ -47,73 +46,78 @@ export class FeedbackDB {
     eatery?: string,
     day?: string,
     hour?: string,
-    predictedWait?: string,
+    predictedWait?: string
   ) {
     const ref = firebaseDB.collection('feedbackData');
 
-    if (eatery && DISPLAY_MAP.hasOwnProperty(eatery)) {
+    if (eatery && Object.prototype.hasOwnProperty.call(DISPLAY_MAP, eatery)) {
       const eateryRef = ref.doc(eatery);
 
       if (day && this.num_to_day.includes(day)) {
         const dayRef = eateryRef.collection(day);
 
-        if (hour && parseInt(hour) >= 0 && parseInt(hour) < 24) {
+        if (hour && parseInt(hour, 10) >= 0 && parseInt(hour, 10) < 24) {
           // get data at specific wait time
           const hourRef = dayRef.doc(hour);
 
-          if (predictedWait && predictedWait != "0") {
+          if (predictedWait && predictedWait !== '0') {
             const predict = await hourRef.collection('modelPrediction').doc(predictedWait).get();
             if (predict.data()) {
               return { predictedWait: predict.id, data: predict.data() };
             }
-            else {
-              return [];
-            }
+
+            return [];
+
           }
           // get data at all predicted wait times (on specific hour)
           return this.getHourFeedback(dayRef, hour);
         }
-        else {
-          // get data at all hours (on specific day)
-          return this.getDayFeedback(eateryRef, day);
-        }
+
+        // get data at all hours (on specific day)
+        return this.getDayFeedback(eateryRef, day);
+
       }
-      else {
-        // get data at all days (on specific eatery)
-        return this.getEateryFeedback(ref, eatery);
-      }
+
+      // get data at all days (on specific eatery)
+      return this.getEateryFeedback(ref, eatery);
+
     }
-    else {
-      // get data at all eateries
-      const eateries = (await ref.get()).docs;
-      const data = await Promise.all(eateries.map(async doc => {
-        const docID = doc.id;
-        const docData = await this.getEateryFeedback(ref, docID);
-        return ({ id: docID, data: docData });
-      }));
-      return data.filter(doc => doc.data.length > 0);
-    }
+
+    // get data at all eateries
+    const eateries = (await ref.get()).docs;
+    const data = await Promise.all(eateries.map(async doc => {
+      const docID = doc.id;
+      const docData = await this.getEateryFeedback(ref, docID);
+      return ({ id: docID, data: docData });
+    }));
+    return data.filter(doc => doc.data.length > 0);
+
   }
 
   // initialize docs in firebase
   async createDocs() {
 
     for (const eatery in DISPLAY_MAP) {
-      const eRef = firebaseDB.collection('feedbackData').doc(eatery);
-      eRef.set({});
-      for (const day in this.num_to_day) {
-        for (var hour = 0; hour < 24; hour++) {
-          const eatRef = eRef.collection(this.num_to_day[day]).doc(hour.toString());
-          eatRef.set({});
-          const eateryRef = eatRef.collection('modelPrediction').doc('0');
-          eateryRef.set(
-            {
-              observedWait: 0,
-              count: 0,
-              comments: []
-            });
+      if (Object.prototype.hasOwnProperty.call(DISPLAY_MAP, eatery)) {
+        const eRef = firebaseDB.collection('feedbackData').doc(eatery);
+        eRef.set({});
+        for (const day in this.num_to_day) {
+          if (Object.prototype.hasOwnProperty.call(this.num_to_day, day)) {
+            for (let hour = 0; hour < 24; hour += 1) {
+              const eatRef = eRef.collection(this.num_to_day[day]).doc(hour.toString());
+              eatRef.set({});
+              const eateryRef = eatRef.collection('modelPrediction').doc('0');
+              eateryRef.set(
+                {
+                  observedWait: 0,
+                  count: 0,
+                  comments: []
+                });
+            }
+          }
         }
       }
+
     }
 
   }
@@ -125,18 +129,18 @@ export class FeedbackDB {
     const day = this.num_to_day[time.getDay()];
     const hour = time.getHours();
 
-    const eatery = feedback.eatery;
-    const predictedWait = feedback.predictedWait;
-    const observedWait = feedback.observedWait;
-    const comment = feedback.comment;
+    const { eatery } = feedback;
+    const { predictedWait } = feedback;
+    const { observedWait } = feedback;
+    const { comment } = feedback;
 
-    var old_count = 0;
-    var old_avg = observedWait;
+    let oldCount = 0;
+    let oldAvg = observedWait;
 
     // initialized fields
-    var observedWait_avg = observedWait;
-    var count = 1;
-    var comments = [];
+    let observedWaitAvg = observedWait;
+    let count = 1;
+    let comments = [];
 
     const eateryRef = firebaseDB
       .collection('feedbackData')
@@ -151,12 +155,12 @@ export class FeedbackDB {
     await eateryRef.get()
       .then(res => {
         // if doc found, get data
-        old_count = res.data().count;
-        old_avg = res.data().observedWait;
+        oldCount = res.data().count;
+        oldAvg = res.data().observedWait;
         comments = res.data().comments;
 
-        observedWait_avg = (old_avg * old_count + observedWait) / (old_count + 1);
-        count = old_count + 1;
+        observedWaitAvg = (oldAvg * oldCount + observedWait) / (oldCount + 1);
+        count = oldCount + 1;
       })
       .catch(err => {
         // else, set initial data
@@ -167,9 +171,9 @@ export class FeedbackDB {
           comments.push(comment);
         }
         eateryRef.set({
-          observedWait: observedWait_avg,
-          count: count,
-          comments: comments
+          observedWait: observedWaitAvg,
+          count,
+          comments
         });
       })
 
