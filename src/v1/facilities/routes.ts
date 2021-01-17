@@ -78,7 +78,7 @@ export default function routes(redis?: Redis, credentials?) {
   );
 
   const facilityHoursKey = req =>
-    generateKey(req, '/facilityHours', ['id, startDate, endDate']);
+    generateKey(req, '/facilityHours', ['id', 'startDate', 'endDate']);
   router.get(
     '/facilityHours',
     cache(facilityHoursKey, redis),
