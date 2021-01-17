@@ -28,7 +28,7 @@ export default function routes(redis?: Redis, credentials?) {
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
         const menuList = await db.getMenus(
-          req.query.id || req.query.facility,
+          req.query.id || req.query.facility, // TODO: Remove req.query.facility as soon as clients migrate to id
           req.query.startDate,
           req.query.endDate,
           req.query.q
