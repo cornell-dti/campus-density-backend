@@ -2,13 +2,13 @@ import {
   JSONParsable,
   JSONObject,
   JSONObjProperty,
-  JSONEnum,
-} from "../../lib/json";
-import { CampusLocation } from "../../models/campus";
+  JSONEnum
+} from '../../lib/json';
+import { CampusLocation } from '../../models/campus';
 
 @JSONParsable({
-  startTimestamp: "number",
-  endTimestamp: "number",
+  startTimestamp: 'number',
+  endTimestamp: 'number'
 })
 export class FacilityHourSet extends JSONObject {
   startTimestamp: number;
@@ -16,10 +16,10 @@ export class FacilityHourSet extends JSONObject {
 }
 
 @JSONParsable({
-  id: "string",
-  nextOpen: "number",
-  closingAt: "number",
-  isOpen: "boolean",
+  id: 'string',
+  nextOpen: 'number',
+  closingAt: 'number',
+  isOpen: 'boolean'
 })
 export class FacilityInfo extends JSONObject {
   id: string;

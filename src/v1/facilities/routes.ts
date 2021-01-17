@@ -1,14 +1,14 @@
-import * as express from "express";
+import * as express from 'express';
 // eslint-disable-line @typescript-eslint/no-var-requires
-import { Redis } from "ioredis";
-import { addListener } from "cluster";
-import { FacilityDB } from "./db";
-import { ID_MAP, DISPLAY_MAP, GYM_DISPLAY_MAP } from "../mapping";
-import asyncify from "../lib/asyncify";
-import { cache } from "../lib/cache";
-import { generateKey } from "../server";
+import { Redis } from 'ioredis';
+import { addListener } from 'cluster';
+import { FacilityDB } from './db';
+import { ID_MAP, DISPLAY_MAP, GYM_DISPLAY_MAP } from '../mapping';
+import asyncify from '../lib/asyncify';
+import { cache } from '../lib/cache';
+import { generateKey } from '../server';
 
-import Datastore = require("@google-cloud/datastore");
+import Datastore = require('@google-cloud/datastore');
 
 export default function routes(redis?: Redis, credentials?) {
   const datastore = new Datastore(credentials ? { credentials } : undefined);
@@ -17,12 +17,12 @@ export default function routes(redis?: Redis, credentials?) {
   const router = express.Router();
 
   router.get(
-    "/facilityList",
+    '/facilityList',
     cache(() => `/facilityList`, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
         const facilityList = await db.facilityList(DISPLAY_MAP);
-        const data = JSON.stringify(facilityList.map((v) => v.result));
+        const data = JSON.stringify(facilityList.map(v => v.result));
 
         if (redis) {
           redis.setex(`/facilityList`, 60 * 10, data);
@@ -37,12 +37,12 @@ export default function routes(redis?: Redis, credentials?) {
   );
 
   router.get(
-    "/gymFacilityList",
+    '/gymFacilityList',
     cache(() => `/gymFacilityList`, redis),
     asyncify(async (req, res) => {
       try {
         const gymFacilityList = await db.facilityList(GYM_DISPLAY_MAP);
-        const data = JSON.stringify(gymFacilityList.map((v) => v.result));
+        const data = JSON.stringify(gymFacilityList.map(v => v.result));
 
         if (redis) {
           redis.setex(`/gymFacilityList`, 60 * 10, data);
@@ -55,16 +55,16 @@ export default function routes(redis?: Redis, credentials?) {
     })
   );
 
-  const facilityInfoKey = (req) => generateKey(req, "/facilityInfo", ["id"]);
+  const facilityInfoKey = req => generateKey(req, '/facilityInfo', ['id']);
   router.get(
-    "/facilityInfo",
+    '/facilityInfo',
     cache(facilityInfoKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
         const facilityInfo = await (req.query.id
           ? db.facilityInfo(req.query.id)
           : db.facilityInfo());
-        const data = JSON.stringify(facilityInfo.map((v) => v.result));
+        const data = JSON.stringify(facilityInfo.map(v => v.result));
 
         if (redis) {
           redis.setex(facilityInfoKey(req), 30, data);
@@ -77,10 +77,10 @@ export default function routes(redis?: Redis, credentials?) {
     })
   );
 
-  const facilityHoursKey = (req) =>
-    generateKey(req, "/facilityHours", ["id, startDate, endDate"]);
+  const facilityHoursKey = req =>
+    generateKey(req, '/facilityHours', ['id, startDate, endDate']);
   router.get(
-    "/facilityHours",
+    '/facilityHours',
     cache(facilityHoursKey, redis),
     asyncify(async (req, res) => {
       try {
@@ -89,7 +89,7 @@ export default function routes(redis?: Redis, credentials?) {
           req.query.startDate,
           req.query.endDate
         );
-        const data = JSON.stringify(facilityHours.map((v) => v.result));
+        const data = JSON.stringify(facilityHours.map(v => v.result));
 
         if (redis) {
           redis.setex(facilityHoursKey(req), 60 * 10, data);
@@ -104,7 +104,7 @@ export default function routes(redis?: Redis, credentials?) {
   );
 
   router.get(
-    "/gymFacilityHours",
+    '/gymFacilityHours',
     asyncify(async (req, res) => {
       try {
         const gymFacilityHours = await db.gymFacilityHours(
