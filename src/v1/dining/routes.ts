@@ -15,14 +15,20 @@ export default function routes(redis?: Redis, credentials?) {
   const router = express.Router();
 
   const menuKey = req =>
-    generateKey(req, '/menuData', ['facility', 'startDate', 'endDate', 'q']);
+    generateKey(req, '/menuData', [
+      'id',
+      'facility',
+      'startDate',
+      'endDate',
+      'q'
+    ]);
   router.get(
     '/menuData',
     cache(menuKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
         const menuList = await db.getMenus(
-          req.query.facility,
+          req.query.id || req.query.facility, // TODO: Remove req.query.facility as soon as clients migrate to id
           req.query.startDate,
           req.query.endDate,
           req.query.q
