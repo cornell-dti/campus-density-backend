@@ -2,6 +2,7 @@ import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import { Redis } from 'ioredis';
 import densityRoutes from './density/routes';
+import waitTimeRoutes from './waittimes/routes';
 import facilityRoutes from './facilities/routes';
 import diningRoutes from './dining/routes';
 import feedbackRoutes from './feedback/routes';
@@ -36,5 +37,7 @@ export default function routes(redis?: Redis, credentials?) {
   router.use('/', diningRoutes(redis, credentials));
   router.use('/', historicalRoutes(redis, credentials));
   router.use('/', feedbackRoutes(redis));
+  router.use('/', waitTimeRoutes(redis, credentials));
+
   return router;
 }
