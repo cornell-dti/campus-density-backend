@@ -1,18 +1,18 @@
-import * as express from "express";
-import { Redis } from "ioredis";
-import asyncify from "../lib/asyncify";
-import { FeedbackDB } from "./db";
-import { cache } from "../lib/cache";
-import { generateKey } from "../server";
+import * as express from 'express';
+import { Redis } from 'ioredis';
+import asyncify from '../lib/asyncify';
+import { FeedbackDB } from './db';
+import { cache } from '../lib/cache';
+import { generateKey } from '../server';
 
 export default function routes(redis?: Redis) {
   const db = new FeedbackDB();
   const router = express.Router();
 
-  const feedbackListKey = (req) =>
-    generateKey(req, "/", ["eatery", "day", "hour", "predictedWait"]);
+  const feedbackListKey = req =>
+    generateKey(req, '/', ['eatery', 'day', 'hour', 'predictedWait']);
   router.get(
-    "/feedbackData",
+    '/feedbackData',
     cache(feedbackListKey, redis),
     asyncify(async (req: express.Request, res: express.Response) => {
       try {
@@ -31,19 +31,19 @@ export default function routes(redis?: Redis) {
 
         res.status(200).send({
           success: true,
-          data: list,
+          data: list
         });
       } catch (err) {
         res.status(404).send({
           success: false,
-          message: "Invalid eatery",
+          message: 'Invalid eatery'
         });
       }
     })
   );
 
   router.post(
-    "/addFeedback",
+    '/addFeedback',
     asyncify(async (req: express.Request, res: express.Response) => {
       const data = req.body;
       await db
@@ -51,18 +51,18 @@ export default function routes(redis?: Redis) {
         .then(() => {
           res.status(200).send({ success: true });
         })
-        .catch((err) => {
+        .catch(err => {
           console.log(err);
           res.status(400).send({
             success: false,
-            message: "Unable to create valid feedback.",
+            message: 'Unable to create valid feedback.'
           });
         });
     })
   );
 
   router.post(
-    "/addGeneralFeedback",
+    '/addGeneralFeedback',
     asyncify(async (req: express.Request, res: express.Response) => {
       const data = req.body;
       await db
@@ -70,11 +70,11 @@ export default function routes(redis?: Redis) {
         .then(() => {
           res.status(200).send({ success: true });
         })
-        .catch((err) => {
+        .catch(err => {
           console.log(err);
           res.status(400).send({
             success: false,
-            message: "Unable to create valid feedback.",
+            message: 'Unable to create valid feedback.'
           });
         });
     })
