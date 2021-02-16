@@ -117,13 +117,7 @@ export class FeedbackDB {
               const eatRef = eRef
                 .collection(this.num_to_day[day])
                 .doc(hour.toString());
-              eatRef.set({});
-              const eateryRef = eatRef.collection('modelPrediction').doc('0');
-              eateryRef.set({
-                observedWait: 0,
-                count: 0,
-                comments: []
-              });
+              eatRef.set({ observedWait: 0, count: 0, comments: [] });
             }
           }
         }
@@ -137,10 +131,7 @@ export class FeedbackDB {
     const day = this.num_to_day[time.getDay()];
     const hour = time.getHours();
 
-    const { eatery } = feedback;
-    const { predictedWait } = feedback;
-    const { observedWait } = feedback;
-    const { comment } = feedback;
+    const { eatery, observedWait, comment } = feedback;
 
     let oldCount = 0;
     let oldAvg = observedWait;
@@ -154,9 +145,7 @@ export class FeedbackDB {
       .collection('feedbackData')
       .doc(eatery)
       .collection(day)
-      .doc(hour.toString())
-      .collection('modelPrediction')
-      .doc(predictedWait.toString());
+      .doc(hour.toString());
 
     // update based on current data
     // get current data
@@ -173,6 +162,12 @@ export class FeedbackDB {
       })
       .catch(err => {
         // else, set initial data
+        console.log(err);
+        eateryRef
+          .set({ observedWait: 0, count: 0, comments: [] })
+          .catch(err2 => {
+            console.log('Error in initializing dining hall feedback values.');
+          });
       })
       .then(() => {
         // check for validity of comment
