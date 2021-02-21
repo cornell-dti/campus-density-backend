@@ -5,7 +5,7 @@ import asyncify from '../lib/asyncify';
 import { cache } from '../lib/cache';
 import { generateKey } from '../server';
 
-import bodyParser = require("body-parser");
+import bodyParser = require('body-parser');
 
 export default function routes(redis?: Redis, credentials?) {
   const db = new WaitTimeDB();
@@ -13,9 +13,9 @@ export default function routes(redis?: Redis, credentials?) {
   const router = express.Router();
   router.use(bodyParser.json());
 
-  const key = (req) => generateKey(req, "/waitTime", ["id"]);
+  const key = req => generateKey(req, '/waitTime', ['id']);
   router.get(
-    "/waitTime",
+    '/waitTime',
     cache(key, redis),
     asyncify(async (req, res) => {
       try {
@@ -31,7 +31,7 @@ export default function routes(redis?: Redis, credentials?) {
           res.status(200).send(data);
         }
         else {
-          res.status(400).send({ success: false, error: "No such facility id." });
+          res.status(400).send({ success: false, error: 'No such facility id.' });
         }
       } catch (err) {
         console.log(err);

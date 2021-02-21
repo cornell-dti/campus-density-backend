@@ -38,6 +38,9 @@ To-be-written
 
 Check out our apiary [here](https://campusdensity.docs.apiary.io/#).
 
+Postman Documentation [here](https://documenter.getpostman.com/view/8937435/TVRkb8rX).
+
+
 More documentation to follow.
 
 
@@ -57,7 +60,6 @@ More documentation to follow.
  * **Vaishnavi Gupta** - Backend Developer
  
  * **Buma Gana** - Designer
- * **Katherine Go** - Designer
  * **Rebecca Fu** - Designer 
  * **Isabella Zhou** - Designer
 

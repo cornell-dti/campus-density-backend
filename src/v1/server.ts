@@ -5,6 +5,7 @@ import densityRoutes from './density/routes';
 import waitTimeRoutes from './waittimes/routes';
 import facilityRoutes from './facilities/routes';
 import diningRoutes from './dining/routes';
+import feedbackRoutes from './feedback/routes';
 import historicalRoutes from './history';
 import Auth, { authenticated } from './auth';
 
@@ -35,6 +36,7 @@ export default function routes(redis?: Redis, credentials?) {
   router.use('/', facilityRoutes(redis, credentials));
   router.use('/', diningRoutes(redis, credentials));
   router.use('/', historicalRoutes(redis, credentials));
+  router.use('/', feedbackRoutes(redis));
   router.use('/', waitTimeRoutes(redis, credentials));
 
   return router;
