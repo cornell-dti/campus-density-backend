@@ -36,6 +36,21 @@ export const ID_MAP = {
   rose: 'Rose Dining Hall'
 };
 
+export const REV_ID_MAP = {
+  "Alice Cook House": 'cook',
+  "Cafe Jennie": "cafejennie",
+  'Carl Becker House': "becker",
+  'Jansens at Bethe House': "bethe",
+  'Keeton House': "keeton",
+  'Kosher': "west104",
+  'North Star Marketplace': "appel",
+  'Okenshields': "oakies",
+  'Olin Libe Cafe': "libe",
+  'RPME': "rpcc",
+  'Risley': "risley",
+  'Rose Dining Hall': "rose"
+};
+
 export const UNITNAME_MAP = {
   AliceCookHouse: 'cook',
   CafeJennie: 'cafejennie',
