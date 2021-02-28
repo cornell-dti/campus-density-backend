@@ -16,7 +16,7 @@ export class WaitTimeDB {
       await firebaseDB.collection('waittimes').doc('waittimes').get()
     ).data();
 
-    let waittimesFormatted = new Map();
+    const waittimesFormatted = new Map();
     Object.keys(ID_MAP).forEach(element => {
       waittimesFormatted[element] = waittimes[ID_MAP[element]];
     });
