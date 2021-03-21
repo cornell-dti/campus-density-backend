@@ -1,7 +1,6 @@
 import { firebaseDB } from '../auth';
 import { Feedback, FluxFeedback } from './models/feedback';
 import { DISPLAY_MAP } from '../mapping';
-import { print } from 'util';
 
 export class FeedbackDB {
   num_to_day = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
