@@ -1,6 +1,7 @@
 import { firebaseDB } from '../auth';
 import { Feedback, FluxFeedback } from './models/feedback';
 import { DISPLAY_MAP } from '../mapping';
+import { print } from 'util';
 
 export class FeedbackDB {
   num_to_day = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -127,7 +128,7 @@ export class FeedbackDB {
 
   // POST feedback
   async addFeedback(feedback: Feedback) {
-    const time = new Date();
+    const time = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
     const day = this.num_to_day[time.getDay()];
     const hour = time.getHours();
 
