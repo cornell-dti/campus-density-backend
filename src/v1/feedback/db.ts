@@ -127,7 +127,7 @@ export class FeedbackDB {
 
   // POST feedback
   async addFeedback(feedback: Feedback) {
-    const time = new Date();
+    const time = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
     const day = this.num_to_day[time.getDay()];
     const hour = time.getHours();
 
