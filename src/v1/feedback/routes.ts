@@ -46,6 +46,10 @@ export default function routes(redis?: Redis) {
     '/addFeedback',
     asyncify(async (req: express.Request, res: express.Response) => {
       const data = req.body;
+      if (!data.observedWait) res.status(400).send({
+        success: false,
+        message: 'Feedback must contain observedWait field'
+      });
       await db
         .addFeedback(data)
         .then(() => {
