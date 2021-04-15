@@ -50,6 +50,10 @@ export default function routes(redis?: Redis) {
         success: false,
         message: 'Feedback must contain observedWait field'
       });
+      if (!data.eatery) res.status(400).send({
+        success: false,
+        message: 'Feedback must contain the eatery field'
+      });
       await db
         .addFeedback(data)
         .then(() => {
